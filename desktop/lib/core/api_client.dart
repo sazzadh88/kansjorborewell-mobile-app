@@ -8,7 +8,7 @@ import 'token_store.dart';
 String desktopApiBaseUrl() {
   const fromDefine = String.fromEnvironment('API_BASE_URL');
   if (fromDefine.isNotEmpty) return fromDefine;
-  return 'http://127.0.0.1:8000/api';
+  return 'https://app.kansjorborewell.in/api';
 }
 
 ApiClient buildDesktopApiClient() => ApiClient(
