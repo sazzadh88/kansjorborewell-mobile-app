@@ -10,10 +10,17 @@ Future<String> saveFilePlatform(
   Directory? dir;
   try {
     dir = await getDownloadsDirectory();
-  } catch (_) {}
-  dir ??= await getApplicationDocumentsDirectory();
+    if (dir != null) {
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+      return file.path;
+    }
+  } catch (_) {
+    // Fall through to documents directory.
+  }
 
-  final file = File('${dir.path}/$fileName');
+  final documents = await getApplicationDocumentsDirectory();
+  final file = File('${documents.path}/$fileName');
   await file.writeAsBytes(bytes);
   return file.path;
 }

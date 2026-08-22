@@ -365,7 +365,14 @@ class ApiClient {
         'CSV saving is not configured for this platform.',
       );
     }
-    return saver(fileName, content);
+    try {
+      return await saver(fileName, content);
+    } catch (_) {
+      throw const ApiException(
+        'The report was generated but could not be saved. '
+        'Check that the app can write to your Downloads folder.',
+      );
+    }
   }
 }
 
