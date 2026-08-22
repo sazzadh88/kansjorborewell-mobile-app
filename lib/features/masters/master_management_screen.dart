@@ -27,8 +27,10 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
   bool _saving = false;
   int? _editingId;
 
-  bool get _canWrite =>
-      ref.read(authProvider).value?.hasPermission('masters.manage') ?? false;
+  bool get _canWrite => switch (widget.resource) {
+    'machines' => ref.read(authProvider).value?.hasPermission('products.manage') ?? false,
+    _ => ref.read(authProvider).value?.hasPermission('masters.manage') ?? false,
+  };
 
   IconData get _icon => switch (widget.resource) {
     'vehicles' => Icons.local_shipping_outlined,
@@ -327,7 +329,7 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
                     ? rows
                     : rows.map((r) {
                         if (r is MachineModel) {
-                          return {'id': r.id, 'name': r.name, 'code': r.code};
+                          return {'id': r.id, 'name': r.name, 'code': r.code, 'is_active': r.isActive};
                         }
                         return r as Map<String, dynamic>;
                       }).toList();
