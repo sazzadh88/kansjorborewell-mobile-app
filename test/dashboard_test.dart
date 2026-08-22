@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile/core/models.dart';
+import 'package:core/core.dart';
 import 'package:mobile/core/providers.dart';
 import 'package:mobile/features/dashboard/dashboard_screen.dart';
+
+class _FakeAuthNotifier extends AuthNotifier {
+  @override
+  Future<UserModel?> build() async => const UserModel(
+    id: 1,
+    name: 'Test User',
+    mobile: '9999999999',
+    role: 'admin',
+    permissions: {'products.view', 'production.view', 'dispatch.view'},
+  );
+}
 
 void main() {
   test('DashboardSummary.fromJson parses string numbers safely', () {
@@ -59,7 +70,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [dashboardProvider.overrideWith((ref) async => mockSummary)],
+        overrides: [
+          dashboardProvider.overrideWith((ref) async => mockSummary),
+          authProvider.overrideWith(_FakeAuthNotifier.new),
+        ],
         child: const MaterialApp(home: DashboardScreen()),
       ),
     );

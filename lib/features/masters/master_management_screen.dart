@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api_client.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -27,6 +26,9 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _saving = false;
   int? _editingId;
+
+  bool get _canWrite =>
+      ref.read(authProvider).value?.hasPermission('masters.manage') ?? false;
 
   IconData get _icon => switch (widget.resource) {
     'vehicles' => Icons.local_shipping_outlined,
@@ -203,16 +205,18 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Edit',
-            onPressed: () => _startEdit(row),
-            icon: const Icon(Icons.edit_outlined),
-          ),
-          IconButton(
-            tooltip: 'Delete',
-            onPressed: () => _delete(row),
-            icon: const Icon(Icons.delete_outline, color: AppColors.danger),
-          ),
+          if (_canWrite) ...[
+            IconButton(
+              tooltip: 'Edit',
+              onPressed: () => _startEdit(row),
+              icon: const Icon(Icons.edit_outlined),
+            ),
+            IconButton(
+              tooltip: 'Delete',
+              onPressed: () => _delete(row),
+              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+            ),
+          ],
         ],
       ),
     ),
@@ -240,63 +244,65 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
-            FormSection(
-              title: title,
-              subtitle:
-                  'Validated records appear immediately in dispatch pickers.',
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    for (final field in widget.fields)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: TextFormField(
-                          controller: _controllers[field],
-                          keyboardType: field == 'mobile'
-                              ? TextInputType.phone
-                              : TextInputType.text,
-                          validator: (value) => _validate(field, value),
-                          decoration: InputDecoration(
-                            labelText: field.replaceAll('_', ' '),
-                            prefixIcon: Icon(_icon),
+            if (_canWrite) ...[
+              FormSection(
+                title: title,
+                subtitle:
+                    'Validated records appear immediately in dispatch pickers.',
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      for (final field in widget.fields)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: TextFormField(
+                            controller: _controllers[field],
+                            keyboardType: field == 'mobile'
+                                ? TextInputType.phone
+                                : TextInputType.text,
+                            validator: (value) => _validate(field, value),
+                            decoration: InputDecoration(
+                              labelText: field.replaceAll('_', ' '),
+                              prefixIcon: Icon(_icon),
+                            ),
                           ),
                         ),
-                      ),
-                    Row(
-                      children: [
-                        if (_editingId != null)
+                      Row(
+                        children: [
+                          if (_editingId != null)
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _saving ? null : _clearForm,
+                                child: const Text('Cancel edit'),
+                              ),
+                            ),
+                          if (_editingId != null) const SizedBox(width: 10),
                           Expanded(
-                            child: OutlinedButton(
-                              onPressed: _saving ? null : _clearForm,
-                              child: const Text('Cancel edit'),
+                            child: FilledButton.icon(
+                              onPressed: _saving ? null : _save,
+                              icon: Icon(
+                                _editingId == null
+                                    ? Icons.add
+                                    : Icons.save_outlined,
+                              ),
+                              label: Text(
+                                _saving
+                                    ? 'Saving'
+                                    : _editingId == null
+                                    ? 'Add ${widget.title.toLowerCase()}'
+                                    : 'Save changes',
+                              ),
                             ),
                           ),
-                        if (_editingId != null) const SizedBox(width: 10),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _saving ? null : _save,
-                            icon: Icon(
-                              _editingId == null
-                                  ? Icons.add
-                                  : Icons.save_outlined,
-                            ),
-                            label: Text(
-                              _saving
-                                  ? 'Saving'
-                                  : _editingId == null
-                                  ? 'Add ${widget.title.toLowerCase()}'
-                                  : 'Save changes',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 22),
+              const SizedBox(height: 22),
+            ],
             SectionHeading(
               title: 'Saved ${widget.title.toLowerCase()}s',
               action: IconButton(
@@ -313,10 +319,11 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
               ),
               data: (rows) {
                 if (rows.isEmpty) {
-                  return const EmptyState(
+                  return EmptyState(
                     title: 'No records yet',
-                    message:
-                        'Add a record above to make it available in dispatch.',
+                    message: _canWrite
+                        ? 'Add a record above to make it available in dispatch.'
+                        : 'No ${widget.title.toLowerCase()} records yet.',
                   );
                 }
                 return Column(children: rows.map(_recordTile).toList());

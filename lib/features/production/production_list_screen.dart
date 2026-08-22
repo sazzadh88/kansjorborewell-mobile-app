@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/api_client.dart';
-import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -18,6 +16,15 @@ class ProductionScreen extends ConsumerStatefulWidget {
 class _ProductionListState extends ConsumerState<ProductionScreen> {
   DateTimeRange? _range;
   int _page = 1;
+
+  bool get _canCreate =>
+      ref.read(authProvider).value?.hasPermission('production.create') ?? false;
+  bool get _canEdit =>
+      ref.read(authProvider).value?.hasPermission('production.edit') ?? false;
+  bool get _canDelete =>
+      ref.read(authProvider).value?.hasPermission('production.delete') ?? false;
+  bool get _canExport =>
+      ref.read(authProvider).value?.hasPermission('production.export') ?? false;
 
   String _date(DateTime value) => value.toIso8601String().substring(0, 10);
   ({String? from, String? to, int page}) get query => (
@@ -160,7 +167,7 @@ class _ProductionListState extends ConsumerState<ProductionScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${item.date} · ${item.machine}',
+                  '${item.date} · ${item.machine}${item.design == null ? '' : ' · ${item.design}'}',
                   style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
               ],
@@ -181,16 +188,19 @@ class _ProductionListState extends ConsumerState<ProductionScreen> {
               ),
             ],
           ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'edit') context.push('/production/new', extra: item);
-              if (value == 'delete') _delete(item);
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Delete')),
-            ],
-          ),
+          if (_canEdit || _canDelete)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') context.push('/production/new', extra: item);
+                if (value == 'delete') _delete(item);
+              },
+              itemBuilder: (_) => [
+                if (_canEdit)
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                if (_canDelete)
+                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
+              ],
+            ),
         ],
       ),
     ),
@@ -209,20 +219,22 @@ class _ProductionListState extends ConsumerState<ProductionScreen> {
             onPressed: _pickRange,
             icon: const Icon(Icons.date_range_outlined),
           ),
-          IconButton(
-            tooltip: 'Export CSV',
-            onPressed: _export,
-            icon: const Icon(Icons.file_download_outlined),
-          ),
-          IconButton(
-            onPressed: () async {
-              await context.push('/production/new');
-              if (!mounted) return;
-              ref.invalidate(productionRecordsProvider(query));
-              await ref.read(productionRecordsProvider(query).future);
-            },
-            icon: const Icon(Icons.add_circle_outline_rounded),
-          ),
+          if (_canExport)
+            IconButton(
+              tooltip: 'Export CSV',
+              onPressed: _export,
+              icon: const Icon(Icons.file_download_outlined),
+            ),
+          if (_canCreate)
+            IconButton(
+              onPressed: () async {
+                await context.push('/production/new');
+                if (!mounted) return;
+                ref.invalidate(productionRecordsProvider(query));
+                await ref.read(productionRecordsProvider(query).future);
+              },
+              icon: const Icon(Icons.add_circle_outline_rounded),
+            ),
         ],
       ),
       child: SafeArea(

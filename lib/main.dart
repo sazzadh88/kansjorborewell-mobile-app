@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/api_client.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: KansjorBorewellApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        apiClientProvider.overrideWithValue(buildMobileApiClient()),
+      ],
+      child: const KansjorBorewellApp(),
+    ),
+  );
 }
 
 class KansjorBorewellApp extends ConsumerWidget {

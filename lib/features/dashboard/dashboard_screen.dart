@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api_client.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -174,51 +173,61 @@ class DashboardScreen extends ConsumerWidget {
                 data: (data) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SectionHeading(title: 'Today at a glance'),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 148,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: MetricCard(
-                              label: 'Production',
-                              value: '${data.productionQty}',
-                              icon: Icons.precision_manufacturing_outlined,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: MetricCard(
-                              label: 'Dispatched',
-                              value: '${data.saleQty}',
-                              icon: Icons.local_shipping_outlined,
-                              tint: const Color(0xFFE7EEF9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 26),
-                    SectionHeading(
-                      title: 'Finished stock',
-                      action: Text(
-                        '${data.brickTypes.length} types',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(color: AppColors.muted),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (data.brickTypes.isEmpty)
-                      const AppCard(
-                        child: EmptyState(
-                          title: 'No stock records',
-                          message:
-                              'Brick stock will appear here once master data is available.',
+                    if (user?.hasPermission('production.view') == true ||
+                        user?.hasPermission('dispatch.view') == true) ...[
+                      const SectionHeading(title: 'Today at a glance'),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 148,
+                        child: Row(
+                          children: [
+                            if (user?.hasPermission('production.view') == true)
+                              Expanded(
+                                child: MetricCard(
+                                  label: 'Production',
+                                  value: '${data.productionQty}',
+                                  icon: Icons.precision_manufacturing_outlined,
+                                ),
+                              ),
+                            if (user?.hasPermission('production.view') == true &&
+                                user?.hasPermission('dispatch.view') == true)
+                              const SizedBox(width: 12),
+                            if (user?.hasPermission('dispatch.view') == true)
+                              Expanded(
+                                child: MetricCard(
+                                  label: 'Dispatched',
+                                  value: '${data.saleQty}',
+                                  icon: Icons.local_shipping_outlined,
+                                  tint: const Color(0xFFE7EEF9),
+                                ),
+                              ),
+                          ],
                         ),
-                      )
-                    else
-                      ...data.brickTypes.map((brick) {
+                      ),
+                      const SizedBox(height: 26),
+                    ],
+                    if (user?.hasPermission('products.view') == true) ...[
+                      SectionHeading(
+                        title: 'Finished stock',
+                        action: Text(
+                          '${data.brickTypes.length} types',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(color: AppColors.muted),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (user?.hasPermission('products.view') == true) ...[
+                      if (data.brickTypes.isEmpty)
+                        const AppCard(
+                          child: EmptyState(
+                            title: 'No stock records',
+                            message:
+                                'Brick stock will appear here once master data is available.',
+                          ),
+                        )
+                      else
+                        ...data.brickTypes.map((brick) {
                         final low = brick.currentStock <= brick.reorderLevel;
                         final target = brick.reorderLevel > 0
                             ? brick.reorderLevel * 4
@@ -347,6 +356,7 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                         );
                       }),
+                    ],
                   ],
                 ),
               ),

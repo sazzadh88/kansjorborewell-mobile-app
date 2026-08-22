@@ -303,21 +303,22 @@ class FactoryShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(authProvider).value?.role ?? 'operator';
-    final showDispatch =
-        role == 'admin' || role == 'manager' || role == 'accountant';
-    final showInventory = role == 'admin' || role == 'manager';
+    final user = ref.watch(authProvider).value;
+    final showProduction = user?.hasPermission('production.view') ?? false;
+    final showDispatch = user?.hasPermission('dispatch.view') ?? false;
+    final showInventory = user?.hasPermission('inventory.view') ?? false;
     final destinations = <NavigationDestination>[
       const NavigationDestination(
         icon: Icon(Icons.grid_view_outlined),
         selectedIcon: Icon(Icons.grid_view_rounded),
         label: 'Overview',
       ),
-      const NavigationDestination(
-        icon: Icon(Icons.precision_manufacturing_outlined),
-        selectedIcon: Icon(Icons.precision_manufacturing),
-        label: 'Production',
-      ),
+      if (showProduction)
+        const NavigationDestination(
+          icon: Icon(Icons.precision_manufacturing_outlined),
+          selectedIcon: Icon(Icons.precision_manufacturing),
+          label: 'Production',
+        ),
       if (showDispatch)
         const NavigationDestination(
           icon: Icon(Icons.local_shipping_outlined),
@@ -338,7 +339,7 @@ class FactoryShell extends ConsumerWidget {
     ];
     final paths = <String>[
       '/dashboard',
-      '/production',
+      if (showProduction) '/production',
       if (showDispatch) '/dispatch',
       if (showInventory) '/inventory',
       '/profile',
@@ -347,7 +348,7 @@ class FactoryShell extends ConsumerWidget {
     if (currentIndex == 0) {
       safeIndex = 0;
     } else if (currentIndex == 1) {
-      safeIndex = 1;
+      safeIndex = showProduction ? paths.indexOf('/production') : 0;
     } else if (currentIndex == 2) {
       safeIndex = showDispatch ? paths.indexOf('/dispatch') : 0;
     } else if (currentIndex == 4) {

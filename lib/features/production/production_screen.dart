@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api_client.dart';
-import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -22,6 +20,7 @@ class _ProductionFormState extends ConsumerState<ProductionFormScreen> {
   final _remarksController = TextEditingController();
   int? _brickTypeId;
   int? _machineId;
+  int? _designId;
   bool _saving = false;
   bool _refreshing = false;
 
@@ -33,6 +32,7 @@ class _ProductionFormState extends ConsumerState<ProductionFormScreen> {
     final entry = widget.entry;
     _brickTypeId = entry?.brickTypeId == 0 ? null : entry?.brickTypeId;
     _machineId = entry?.machineId == 0 ? null : entry?.machineId;
+    _designId = entry?.designId;
     _quantityController.text = entry?.quantity.toString() ?? '';
     _remarksController.text = entry?.remarks ?? '';
   }
@@ -48,9 +48,11 @@ class _ProductionFormState extends ConsumerState<ProductionFormScreen> {
     setState(() => _refreshing = true);
     ref.invalidate(brickTypesProvider);
     ref.invalidate(machinesProvider);
+    ref.invalidate(designsProvider);
     await Future.wait([
       ref.read(brickTypesProvider.future),
       ref.read(machinesProvider.future),
+      ref.read(designsProvider.future),
     ]);
     if (mounted) {
       setState(() => _refreshing = false);
@@ -80,6 +82,7 @@ class _ProductionFormState extends ConsumerState<ProductionFormScreen> {
           DateTime.now().toIso8601String().substring(0, 10),
       'machine_id': _machineId,
       'brick_type_id': _brickTypeId,
+      if (_designId != null) 'design_id': _designId,
       'quantity_produced': quantity,
       'remarks': _remarksController.text.trim(),
     };
@@ -119,6 +122,11 @@ class _ProductionFormState extends ConsumerState<ProductionFormScreen> {
   Widget build(BuildContext context) {
     final bricks = ref.watch(brickTypesProvider);
     final machines = ref.watch(machinesProvider);
+    final designs = ref.watch(designsProvider);
+    final selectedBrick = bricks.asData?.value
+        .where((item) => item.id == _brickTypeId)
+        .firstOrNull;
+    final showDesign = selectedBrick?.isPaver ?? false;
     return FactoryShell(
       currentIndex: 1,
       title: editing ? 'Edit output' : 'Add output',
@@ -184,6 +192,39 @@ class _ProductionFormState extends ConsumerState<ProductionFormScreen> {
                           setState(() => _brickTypeId = value),
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  if (showDesign)
+                    designs.when(
+                      loading: () => const MasterPickerLoading(
+                        label: 'designs',
+                        icon: Icons.design_services_outlined,
+                      ),
+                      error: (error, _) => ErrorState(
+                        message: 'Designs are unavailable.',
+                        onRetry: () => ref.invalidate(designsProvider),
+                      ),
+                      data: (items) => DropdownButtonFormField<int?>(
+                        initialValue: _designId,
+                        decoration: const InputDecoration(
+                          labelText: 'Design',
+                          helperText: 'Applicable to paver blocks only',
+                          prefixIcon: Icon(Icons.design_services_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('None'),
+                          ),
+                          ...items.map(
+                            (item) => DropdownMenuItem<int?>(
+                              value: item.id,
+                              child: Text('${item.name} · ${item.size}'),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) => setState(() => _designId = value),
+                      ),
+                    ),
                   const SizedBox(height: 14),
                   machines.when(
                     loading: () => const MasterPickerLoading(

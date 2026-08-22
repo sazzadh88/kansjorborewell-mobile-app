@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api_client.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -230,7 +229,7 @@ class _InventoryReportScreenState extends ConsumerState<InventoryReportScreen> {
                                       ),
                                       const SizedBox(height: 3),
                                       Text(
-                                        '${_humanDate(movement.date)} · ${movement.type.toUpperCase()}',
+                                        '${movement.formattedDateTime} · ${movement.type.toUpperCase()}',
                                         style: const TextStyle(
                                           color: AppColors.muted,
                                           fontSize: 12,

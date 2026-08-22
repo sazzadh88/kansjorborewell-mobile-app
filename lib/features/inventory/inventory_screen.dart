@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/api_client.dart';
-import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -17,6 +15,11 @@ class InventoryScreen extends ConsumerStatefulWidget {
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   static const _units = ['kg', 'bag', 'ton', 'litre', 'piece', 'Other'];
+
+  bool get _canManage =>
+      ref.read(authProvider).value?.hasPermission('inventory.manage') ?? false;
+  bool get _canReport =>
+      ref.read(authProvider).value?.hasPermission('inventory.report') ?? false;
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -396,43 +399,48 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               ),
             ],
           ),
-          const Divider(height: 24),
-          Row(
-            children: [
-              if (item.isLowStock)
-                const Expanded(
-                  child: Text(
-                    'Low stock',
-                    style: TextStyle(
-                      color: AppColors.warning,
-                      fontWeight: FontWeight.w800,
+          if (_canManage) ...[
+            const Divider(height: 24),
+            Row(
+              children: [
+                if (item.isLowStock)
+                  const Expanded(
+                    child: Text(
+                      'Low stock',
+                      style: TextStyle(
+                        color: AppColors.warning,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
+                  )
+                else
+                  const Spacer(),
+                IconButton(
+                  tooltip: 'Add stock',
+                  onPressed: () => _stockIn(item),
+                  icon: const Icon(Icons.add_box_outlined),
+                ),
+                IconButton(
+                  tooltip: 'Issue stock',
+                  onPressed: () => _stockOut(item),
+                  icon: const Icon(Icons.remove_circle_outline),
+                ),
+                IconButton(
+                  tooltip: 'Edit',
+                  onPressed: () => _startEdit(item),
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+                IconButton(
+                  tooltip: 'Delete',
+                  onPressed: () => _delete(item),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.danger,
                   ),
-                )
-              else
-                const Spacer(),
-              IconButton(
-                tooltip: 'Add stock',
-                onPressed: () => _stockIn(item),
-                icon: const Icon(Icons.add_box_outlined),
-              ),
-              IconButton(
-                tooltip: 'Issue stock',
-                onPressed: () => _stockOut(item),
-                icon: const Icon(Icons.remove_circle_outline),
-              ),
-              IconButton(
-                tooltip: 'Edit',
-                onPressed: () => _startEdit(item),
-                icon: const Icon(Icons.edit_outlined),
-              ),
-              IconButton(
-                tooltip: 'Delete',
-                onPressed: () => _delete(item),
-                icon: const Icon(Icons.delete_outline, color: AppColors.danger),
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     ),
@@ -447,11 +455,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       title: 'Inventory',
       action: Row(
         children: [
-          IconButton(
-            tooltip: 'Inventory report',
-            onPressed: () => context.push('/inventory/report'),
-            icon: const Icon(Icons.assessment_outlined),
-          ),
+          if (_canReport)
+            IconButton(
+              tooltip: 'Inventory report',
+              onPressed: () => context.push('/inventory/report'),
+              icon: const Icon(Icons.assessment_outlined),
+            ),
           IconButton(
             tooltip: 'Refresh inventory',
             onPressed: () => ref.invalidate(rawMaterialsProvider),
@@ -480,113 +489,115 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               ).textTheme.bodyMedium?.copyWith(color: AppColors.muted),
             ),
             const SizedBox(height: 18),
-            FormSection(
-              title: editing ? 'Edit inventory item' : 'Add inventory item',
-              subtitle: editing
-                  ? 'Current stock stays unchanged while you edit its details.'
-                  : 'Choose a unit or enter a custom unit under Other.',
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      validator: _required,
-                      decoration: const InputDecoration(
-                        labelText: 'Material name',
-                        prefixIcon: Icon(Icons.category_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: _unit,
-                      decoration: const InputDecoration(
-                        labelText: 'Unit type',
-                        prefixIcon: Icon(Icons.straighten_outlined),
-                      ),
-                      items: _units
-                          .map(
-                            (unit) => DropdownMenuItem(
-                              value: unit,
-                              child: Text(unit),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _unit = value ?? _units.first),
-                    ),
-                    if (_unit == 'Other') ...[
-                      const SizedBox(height: 12),
+            if (_canManage) ...[
+              FormSection(
+                title: editing ? 'Edit inventory item' : 'Add inventory item',
+                subtitle: editing
+                    ? 'Current stock stays unchanged while you edit its details.'
+                    : 'Choose a unit or enter a custom unit under Other.',
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
                       TextFormField(
-                        controller: _customUnitController,
-                        validator: (value) =>
-                            _unit == 'Other' ? _required(value) : null,
+                        controller: _nameController,
+                        validator: _required,
                         decoration: const InputDecoration(
-                          labelText: 'Custom unit name',
-                          prefixIcon: Icon(Icons.edit_note_outlined),
+                          labelText: 'Material name',
+                          prefixIcon: Icon(Icons.category_outlined),
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 12),
-                    if (!editing) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: _unit,
+                        decoration: const InputDecoration(
+                          labelText: 'Unit type',
+                          prefixIcon: Icon(Icons.straighten_outlined),
+                        ),
+                        items: _units
+                            .map(
+                              (unit) => DropdownMenuItem(
+                                value: unit,
+                                child: Text(unit),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _unit = value ?? _units.first),
+                      ),
+                      if (_unit == 'Other') ...[
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _customUnitController,
+                          validator: (value) =>
+                              _unit == 'Other' ? _required(value) : null,
+                          decoration: const InputDecoration(
+                            labelText: 'Custom unit name',
+                            prefixIcon: Icon(Icons.edit_note_outlined),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      if (!editing) ...[
+                        TextFormField(
+                          controller: _openingStockController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: _positiveNumber,
+                          decoration: const InputDecoration(
+                            labelText: 'Opening stock',
+                            prefixIcon: Icon(Icons.inventory_2_outlined),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       TextFormField(
-                        controller: _openingStockController,
+                        controller: _reorderLevelController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         validator: _positiveNumber,
                         decoration: const InputDecoration(
-                          labelText: 'Opening stock',
-                          prefixIcon: Icon(Icons.inventory_2_outlined),
+                          labelText: 'Reorder level',
+                          prefixIcon: Icon(Icons.warning_amber_outlined),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                    ],
-                    TextFormField(
-                      controller: _reorderLevelController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      validator: _positiveNumber,
-                      decoration: const InputDecoration(
-                        labelText: 'Reorder level',
-                        prefixIcon: Icon(Icons.warning_amber_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        if (editing) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          if (editing) ...[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _saving ? null : _clearForm,
+                                child: const Text('Cancel edit'),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
                           Expanded(
-                            child: OutlinedButton(
-                              onPressed: _saving ? null : _clearForm,
-                              child: const Text('Cancel edit'),
+                            child: FilledButton.icon(
+                              onPressed: _saving ? null : _save,
+                              icon: Icon(
+                                editing ? Icons.save_outlined : Icons.add,
+                              ),
+                              label: Text(
+                                _saving
+                                    ? 'Saving'
+                                    : editing
+                                    ? 'Save changes'
+                                    : 'Add material',
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 10),
                         ],
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _saving ? null : _save,
-                            icon: Icon(
-                              editing ? Icons.save_outlined : Icons.add,
-                            ),
-                            label: Text(
-                              _saving
-                                  ? 'Saving'
-                                  : editing
-                                  ? 'Save changes'
-                                  : 'Add material',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 22),
+              const SizedBox(height: 22),
+            ],
             SectionHeading(
               title: 'Inventory balance',
               action: IconButton(

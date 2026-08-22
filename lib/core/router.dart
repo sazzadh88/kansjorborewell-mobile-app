@@ -12,11 +12,41 @@ import '../features/production/production_form_screen.dart' as production_form;
 import '../features/production/production_list_screen.dart' as production_list;
 import '../features/inventory/inventory_report_screen.dart';
 import '../features/inventory/inventory_screen.dart';
+import '../features/groups/striking_groups_screen.dart';
+import '../features/groups/loading_groups_screen.dart';
 import '../features/masters/master_management_screen.dart';
+import '../features/masters/brick_types_screen.dart';
+import '../features/masters/brick_sizes_screen.dart';
+import '../features/masters/design_patterns_screen.dart';
+import '../features/admin/roles_screen.dart';
+import '../features/reports/gst_report_screen.dart';
+import '../features/reports/dispatch_dues_screen.dart';
 import '../features/profile/profile_edit_screen.dart';
 import '../features/profile/profile_screen.dart';
-import 'models.dart';
+import 'api_client.dart';
 import 'providers.dart';
+
+/// Mirrors the backend `perm:` middleware in routes/api.php.
+final Map<String, String> routePermissions = {
+  '/production': 'production.view',
+  '/production/new': 'production.create',
+  '/dispatch': 'dispatch.view',
+  '/dispatch/new': 'dispatch.create',
+  '/inventory': 'inventory.view',
+  '/inventory/report': 'inventory.report',
+  '/striking-groups': 'striking.view',
+  '/loading-groups': 'loading.view',
+  '/admin/staff': 'staff.manage',
+  '/admin/roles': 'roles.manage',
+  '/reports/gst': 'reports.view',
+  '/reports/dispatch-dues': 'dispatch.view',
+  '/masters/brick-types': 'products.view',
+  '/masters/brick-sizes': 'products.view',
+  '/masters/design-patterns': 'products.view',
+  '/masters/parties': 'masters.view',
+  '/masters/vehicles': 'masters.view',
+  '/masters/drivers': 'masters.view',
+};
 
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
@@ -35,7 +65,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (auth.value == null) {
         return isLogin ? null : '/login';
       }
-      return isSplash || isLogin ? '/dashboard' : null;
+      if (isSplash || isLogin) return '/dashboard';
+
+      final requiredPermission = routePermissions[location];
+      if (requiredPermission != null &&
+          !(auth.value!.hasPermission(requiredPermission))) {
+        return '/dashboard';
+      }
+      return null;
     },
     routes: [
       GoRoute(
@@ -84,12 +121,44 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const StaffScreen(),
       ),
       GoRoute(
+        path: '/admin/roles',
+        builder: (context, state) => const RolesScreen(),
+      ),
+      GoRoute(
+        path: '/reports/gst',
+        builder: (context, state) => const GstReportScreen(),
+      ),
+      GoRoute(
+        path: '/reports/dispatch-dues',
+        builder: (context, state) => const DispatchDuesScreen(),
+      ),
+      GoRoute(
         path: '/inventory',
         builder: (context, state) => const InventoryScreen(),
       ),
       GoRoute(
         path: '/inventory/report',
         builder: (context, state) => const InventoryReportScreen(),
+      ),
+      GoRoute(
+        path: '/striking-groups',
+        builder: (context, state) => const StrikingGroupsScreen(),
+      ),
+      GoRoute(
+        path: '/loading-groups',
+        builder: (context, state) => const LoadingGroupsScreen(),
+      ),
+      GoRoute(
+        path: '/masters/brick-types',
+        builder: (context, state) => const BrickTypesScreen(),
+      ),
+      GoRoute(
+        path: '/masters/brick-sizes',
+        builder: (context, state) => const BrickSizesScreen(),
+      ),
+      GoRoute(
+        path: '/masters/design-patterns',
+        builder: (context, state) => const DesignPatternsScreen(),
       ),
       GoRoute(
         path: '/masters/parties',

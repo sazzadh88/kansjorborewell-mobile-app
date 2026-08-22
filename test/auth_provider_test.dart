@@ -1,15 +1,31 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mobile/core/api_client.dart';
-import 'package:mobile/core/models.dart';
+import 'package:core/core.dart';
 import 'package:mobile/core/providers.dart';
+
+class _FakeTokenStore implements TokenStore {
+  String? token;
+
+  @override
+  Future<String?> read({required String key}) async => token;
+
+  @override
+  Future<void> write({required String key, required String value}) async {
+    token = value;
+  }
+
+  @override
+  Future<void> delete({required String key}) async {
+    token = null;
+  }
+}
 
 class FakeApiClient extends ApiClient {
   FakeApiClient({this.shouldFail = false})
-    : super(storage: const FlutterSecureStorage());
+    : super(baseUrl: 'http://localhost/api', storage: _FakeTokenStore());
 
   final bool shouldFail;
 

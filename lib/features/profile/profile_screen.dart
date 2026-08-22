@@ -38,7 +38,15 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).value;
-    final isAdmin = user?.role == 'admin';
+    final canManageStaff = user?.hasPermission('staff.manage') ?? false;
+    final canManageRoles = user?.hasPermission('roles.manage') ?? false;
+    final canViewInventory = user?.hasPermission('inventory.view') ?? false;
+    final canViewStriking = user?.hasPermission('striking.view') ?? false;
+    final canViewLoading = user?.hasPermission('loading.view') ?? false;
+    final canViewProducts = user?.hasPermission('products.view') ?? false;
+    final canViewMasters = user?.hasPermission('masters.view') ?? false;
+    final canViewDispatch = user?.hasPermission('dispatch.view') ?? false;
+    final canViewReports = user?.hasPermission('reports.view') ?? false;
     return FactoryShell(
       currentIndex: 3,
       title: 'Profile',
@@ -129,7 +137,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            if (isAdmin || user?.role == 'manager') ...[
+            if (canViewInventory) ...[
               const SectionHeading(title: 'Inventory'),
               const SizedBox(height: 10),
               _ActionTile(
@@ -140,39 +148,123 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 18),
             ],
-            if (isAdmin) ...[
+            if (canViewStriking || canViewLoading) ...[
+              const SectionHeading(title: 'Striking & Loading'),
+              const SizedBox(height: 10),
+              if (canViewStriking) ...[
+                _ActionTile(
+                  icon: Icons.group_work_outlined,
+                  title: 'Striking groups',
+                  subtitle: 'Track striking group items and operations',
+                  onTap: () => context.push('/striking-groups'),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (canViewLoading) ...[
+                _ActionTile(
+                  icon: Icons.groups_2_outlined,
+                  title: 'Loading groups',
+                  subtitle: 'Track loading group items and operations',
+                  onTap: () => context.push('/loading-groups'),
+                ),
+                const SizedBox(height: 8),
+              ],
+              const SizedBox(height: 10),
+            ],
+            if (canManageStaff || canManageRoles) ...[
               const SectionHeading(title: 'Administration'),
               const SizedBox(height: 10),
+              if (canManageStaff) ...[
+                _ActionTile(
+                  icon: Icons.groups_outlined,
+                  title: 'Staff',
+                  subtitle: 'Create, edit, and remove staff accounts',
+                  onTap: () => context.push('/admin/staff'),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (canManageRoles) ...[
+                _ActionTile(
+                  icon: Icons.admin_panel_settings_outlined,
+                  title: 'Roles & permissions',
+                  subtitle: 'Control page access and actions per role',
+                  onTap: () => context.push('/admin/roles'),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ],
+            if (canViewProducts) ...[
+              const SectionHeading(title: 'Products'),
+              const SizedBox(height: 10),
               _ActionTile(
-                icon: Icons.groups_outlined,
-                title: 'Staff',
-                subtitle: 'Create, edit, and remove staff accounts',
-                onTap: () => context.push('/admin/staff'),
+                icon: Icons.view_module_outlined,
+                title: 'Brick types',
+                subtitle: 'Manage fly ash and paver block types',
+                onTap: () => context.push('/masters/brick-types'),
               ),
               const SizedBox(height: 8),
+              _ActionTile(
+                icon: Icons.straighten_outlined,
+                title: 'Thickness / Sizes',
+                subtitle: 'Manage selectable product sizes',
+                onTap: () => context.push('/masters/brick-sizes'),
+              ),
+              const SizedBox(height: 8),
+              _ActionTile(
+                icon: Icons.texture_outlined,
+                title: 'Design patterns',
+                subtitle: 'Manage paver patterns and colors',
+                onTap: () => context.push('/masters/design-patterns'),
+              ),
+              const SizedBox(height: 18),
             ],
-            const SectionHeading(title: 'Dispatch masters'),
-            const SizedBox(height: 10),
-            _ActionTile(
-              icon: Icons.storefront_outlined,
-              title: 'Parties',
-              subtitle: 'Manage receiving customers and parties',
-              onTap: () => context.push('/masters/parties'),
-            ),
-            const SizedBox(height: 8),
-            _ActionTile(
-              icon: Icons.local_shipping_outlined,
-              title: 'Vehicles',
-              subtitle: 'Manage dispatch vehicles',
-              onTap: () => context.push('/masters/vehicles'),
-            ),
-            const SizedBox(height: 8),
-            _ActionTile(
-              icon: Icons.badge_outlined,
-              title: 'Drivers',
-              subtitle: 'Manage driver records',
-              onTap: () => context.push('/masters/drivers'),
-            ),
+            if (canViewMasters) ...[
+              const SectionHeading(title: 'Dispatch masters'),
+              const SizedBox(height: 10),
+              _ActionTile(
+                icon: Icons.storefront_outlined,
+                title: 'Parties',
+                subtitle: 'Manage receiving customers and parties',
+                onTap: () => context.push('/masters/parties'),
+              ),
+              const SizedBox(height: 8),
+              _ActionTile(
+                icon: Icons.local_shipping_outlined,
+                title: 'Vehicles',
+                subtitle: 'Manage dispatch vehicles',
+                onTap: () => context.push('/masters/vehicles'),
+              ),
+              const SizedBox(height: 8),
+              _ActionTile(
+                icon: Icons.badge_outlined,
+                title: 'Drivers',
+                subtitle: 'Manage driver records',
+                onTap: () => context.push('/masters/drivers'),
+              ),
+              const SizedBox(height: 18),
+            ],
+            if (canViewReports || canViewDispatch) ...[
+              const SectionHeading(title: 'Reports'),
+              const SizedBox(height: 10),
+              if (canViewReports) ...[
+                _ActionTile(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'GST report',
+                  subtitle: 'Taxable freight and GST by party',
+                  onTap: () => context.push('/reports/gst'),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (canViewDispatch) ...[
+                _ActionTile(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'Dispatch dues',
+                  subtitle: 'Paid amounts and final due per party',
+                  onTap: () => context.push('/reports/dispatch-dues'),
+                ),
+              ],
+              const SizedBox(height: 18),
+            ],
             const SizedBox(height: 18),
             OutlinedButton.icon(
               onPressed: () => _confirmSignOut(context, ref),

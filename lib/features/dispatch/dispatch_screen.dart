@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api_client.dart';
-import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -19,11 +17,13 @@ class DispatchFormScreen extends ConsumerStatefulWidget {
 class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
   final _quantityController = TextEditingController();
   final _freightController = TextEditingController();
+  final _paidController = TextEditingController();
   int? _brickTypeId;
   int? _partyId;
   int? _vehicleId;
   int? _driverId;
-  bool _freightPaid = false;
+  String _paymentStatus = 'due';
+  String? _paymentMode;
   bool _saving = false;
   bool _refreshing = false;
 
@@ -39,13 +39,16 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
     _driverId = entry?.driverId;
     _quantityController.text = entry?.quantity.toString() ?? '';
     _freightController.text = entry?.freightAmount?.toString() ?? '';
-    _freightPaid = entry?.freightPaid ?? false;
+    _paidController.text = entry?.paidAmount == 0 ? '' : entry?.paidAmount.toString() ?? '';
+    _paymentStatus = entry?.paymentStatus ?? 'due';
+    _paymentMode = entry?.paymentMode;
   }
 
   @override
   void dispose() {
     _quantityController.dispose();
     _freightController.dispose();
+    _paidController.dispose();
     super.dispose();
   }
 
@@ -72,15 +75,20 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
   Future<void> _save() async {
     final quantity = int.tryParse(_quantityController.text.trim());
     final freight = double.tryParse(_freightController.text.trim()) ?? 0;
+    final paid = double.tryParse(_paidController.text.trim()) ?? 0;
     if (_brickTypeId == null ||
         _partyId == null ||
         _vehicleId == null ||
         quantity == null ||
         quantity < 1 ||
-        freight < 0) {
+        freight < 0 ||
+        paid < 0 ||
+        paid > freight) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Choose brick, party, vehicle, and a valid quantity.'),
+          content: Text(
+            'Choose brick, party, vehicle, and a valid quantity. Paid amount must not exceed freight.',
+          ),
         ),
       );
       return;
@@ -96,7 +104,9 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
       'vehicle_id': _vehicleId,
       'driver_id': _driverId,
       'freight_amount': freight,
-      'freight_paid': _freightPaid,
+      'payment_status': _paymentStatus,
+      'paid_amount': paid,
+      if (_paymentMode != null) 'payment_mode': _paymentMode,
     };
     try {
       if (editing) {
@@ -302,19 +312,43 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
                       prefixIcon: Icon(Icons.currency_rupee_outlined),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                    title: const Text(
-                      'Freight paid immediately',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _paidController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Paid amount',
+                      prefixText: '₹ ',
+                      helperText: 'Leave 0 for fully due',
+                      prefixIcon: Icon(Icons.payments_outlined),
                     ),
-                    subtitle: const Text(
-                      'Create payment record with this dispatch',
-                      style: TextStyle(color: AppColors.muted, fontSize: 12),
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    initialValue: _paymentStatus,
+                    decoration: const InputDecoration(
+                      labelText: 'Payment status',
+                      prefixIcon: Icon(Icons.flag_outlined),
                     ),
-                    value: _freightPaid,
-                    onChanged: (value) => setState(() => _freightPaid = value),
+                    items: const [
+                      DropdownMenuItem(value: 'due', child: Text('Due')),
+                      DropdownMenuItem(value: 'paid', child: Text('Paid')),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => _paymentStatus = value ?? 'due'),
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String?>(
+                    initialValue: _paymentMode,
+                    decoration: const InputDecoration(
+                      labelText: 'Payment mode',
+                      prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                      DropdownMenuItem(value: 'online', child: Text('Online')),
+                    ],
+                    onChanged: (value) => setState(() => _paymentMode = value),
                   ),
                   const SizedBox(height: 20),
                   FilledButton.icon(

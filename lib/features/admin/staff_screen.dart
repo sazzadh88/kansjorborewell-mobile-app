@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api_client.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -18,7 +17,10 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
   final _mobile = TextEditingController();
   final _password = TextEditingController();
   int? _roleId;
+  int? _editingId;
   bool _saving = false;
+
+  bool get _editing => _editingId != null;
 
   @override
   void dispose() {
@@ -28,34 +30,72 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
     super.dispose();
   }
 
-  Future<void> _create() async {
-    if (_name.text.trim().isEmpty ||
-        _mobile.text.trim().isEmpty ||
-        _password.text.isEmpty ||
-        _roleId == null) {
+  void _resetForm() {
+    _name.clear();
+    _mobile.clear();
+    _password.clear();
+    setState(() {
+      _editingId = null;
+      _roleId = null;
+    });
+  }
+
+  void _startEdit(Map<String, dynamic> person) {
+    _name.text = person['name']?.toString() ?? '';
+    _mobile.text = person['mobile']?.toString() ?? '';
+    _password.clear();
+    setState(() {
+      _editingId = person['id'] as int;
+      _roleId = (person['role'] as Map?)?['id'] as int?;
+    });
+  }
+
+  Future<void> _save() async {
+    final name = _name.text.trim();
+    final mobile = _mobile.text.trim();
+    if (name.isEmpty || mobile.isEmpty || _roleId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Complete staff name, mobile, password, and role.'),
+          content: Text('Complete staff name, mobile, and role.'),
         ),
       );
       return;
     }
+    final password = _password.text.trim();
+    if (!_editing && password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters.')),
+      );
+      return;
+    }
+    if (_editing && password.isNotEmpty && password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters.')),
+      );
+      return;
+    }
     setState(() => _saving = true);
+    final payload = <String, dynamic>{
+      'name': name,
+      'mobile': mobile,
+      'role_id': _roleId,
+      if (password.isNotEmpty) 'password': password,
+    };
     try {
-      await ref.read(apiClientProvider).createStaff({
-        'name': _name.text.trim(),
-        'mobile': _mobile.text.trim(),
-        'password': _password.text,
-        'role_id': _roleId,
-      });
-      _name.clear();
-      _mobile.clear();
-      _password.clear();
+      final api = ref.read(apiClientProvider);
+      if (_editing) {
+        await api.updateStaff(_editingId!, payload);
+      } else {
+        await api.createStaff(payload);
+      }
+      _resetForm();
       ref.invalidate(staffProvider);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Staff account created.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_editing ? 'Staff account updated.' : 'Staff account created.'),
+          ),
+        );
       }
     } catch (error) {
       if (mounted) {
@@ -68,51 +108,133 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
     }
   }
 
-  Widget _personTile(Map<String, dynamic> person) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: AppCard(
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppColors.accentTint,
-            child: Text(
-              (person['name'] as String? ?? 'U').substring(0, 1).toUpperCase(),
-              style: const TextStyle(
-                color: AppColors.accentDark,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+  Future<void> _delete(Map<String, dynamic> person) async {
+    final name = person['name']?.toString() ?? 'this staff account';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Delete $name?'),
+        content: const Text('This staff account will lose access immediately.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  person['name'] as String? ?? 'Staff',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  person['mobile'] as String? ?? '',
-                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            ((person['role'] as Map?)?['name'] as String? ?? 'staff')
-                .toUpperCase(),
-            style: const TextStyle(
-              color: AppColors.accent,
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-            ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
           ),
         ],
       ),
-    ),
-  );
+    );
+    if (confirmed != true) return;
+    try {
+      await ref
+          .read(apiClientProvider)
+          .deleteStaff(person['id'] as int);
+      ref.invalidate(staffProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$name deleted.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(apiErrorMessage(error))));
+      }
+    }
+  }
+
+  bool _isAdmin(Map<String, dynamic> person) =>
+      (person['role'] as Map?)?['name']?.toString() == 'admin';
+
+  Widget _personTile(Map<String, dynamic> person) {
+    final meId = ref.watch(authProvider).value?.id;
+    final isMe = meId != null && (person['id'] as num?)?.toInt() == meId;
+    final admin = _isAdmin(person);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: AppCard(
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppColors.accentTint,
+              child: Text(
+                (person['name'] as String? ?? 'U').substring(0, 1).toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.accentDark,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          person['name'] as String? ?? 'Staff',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 6),
+                        const Text(
+                          '(you)',
+                          style: TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    person['mobile'] as String? ?? '',
+                    style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            if (admin)
+              const Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Text(
+                  'ADMIN',
+                  style: TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              )
+            else ...[
+              IconButton(
+                tooltip: 'Edit',
+                onPressed: () => _startEdit(person),
+                icon: const Icon(Icons.edit_outlined),
+              ),
+              IconButton(
+                tooltip: isMe ? 'You cannot delete your own account' : 'Delete',
+                onPressed: isMe ? null : () => _delete(person),
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: isMe ? AppColors.muted : AppColors.danger,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,9 +246,10 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         children: [
           FormSection(
-            title: 'Add staff member',
-            subtitle:
-                'Create accounts for operators, managers, and accountants.',
+            title: _editing ? 'Edit staff member' : 'Add staff member',
+            subtitle: _editing
+                ? 'Update this account\'s name, mobile, role, or password.'
+                : 'Create accounts for operators, managers, and accountants.',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -150,9 +273,11 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
                 TextField(
                   controller: _password,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Temporary password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                  decoration: InputDecoration(
+                    labelText: _editing
+                        ? 'New password (leave blank to keep)'
+                        : 'Temporary password',
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -178,12 +303,33 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                FilledButton.icon(
-                  onPressed: _saving ? null : _create,
-                  icon: const Icon(Icons.person_add_alt_1),
-                  label: Text(
-                    _saving ? 'Creating account' : 'Create staff account',
-                  ),
+                Row(
+                  children: [
+                    if (_editing) ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _saving ? null : _resetForm,
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _saving ? null : _save,
+                        icon: Icon(
+                          _editing ? Icons.save_outlined : Icons.person_add_alt_1,
+                        ),
+                        label: Text(
+                          _saving
+                              ? 'Saving'
+                              : _editing
+                              ? 'Save changes'
+                              : 'Create staff account',
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

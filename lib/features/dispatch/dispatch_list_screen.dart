@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/api_client.dart';
-import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -18,6 +16,15 @@ class DispatchScreen extends ConsumerStatefulWidget {
 class _DispatchListState extends ConsumerState<DispatchScreen> {
   DateTimeRange? _range;
   int _page = 1;
+
+  bool get _canCreate =>
+      ref.read(authProvider).value?.hasPermission('dispatch.create') ?? false;
+  bool get _canEdit =>
+      ref.read(authProvider).value?.hasPermission('dispatch.edit') ?? false;
+  bool get _canDelete =>
+      ref.read(authProvider).value?.hasPermission('dispatch.delete') ?? false;
+  bool get _canExport =>
+      ref.read(authProvider).value?.hasPermission('dispatch.export') ?? false;
 
   String _date(DateTime value) => value.toIso8601String().substring(0, 10);
   ({String? from, String? to, int page}) get query => (
@@ -169,6 +176,15 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
                   '${item.date}${item.driver == null ? '' : ' · ${item.driver}'}',
                   style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  '${item.isPaid ? 'Paid' : 'Due'} · ₹${item.paidAmount} / ₹${item.freightAmount ?? 0}',
+                  style: TextStyle(
+                    color: item.isPaid ? AppColors.success : AppColors.warning,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ],
             ),
           ),
@@ -187,16 +203,19 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
               ),
             ],
           ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'edit') context.push('/dispatch/new', extra: item);
-              if (value == 'delete') _delete(item);
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Delete')),
-            ],
-          ),
+          if (_canEdit || _canDelete)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') context.push('/dispatch/new', extra: item);
+                if (value == 'delete') _delete(item);
+              },
+              itemBuilder: (_) => [
+                if (_canEdit)
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                if (_canDelete)
+                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
+              ],
+            ),
         ],
       ),
     ),
@@ -215,20 +234,22 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
             onPressed: _pickRange,
             icon: const Icon(Icons.date_range_outlined),
           ),
-          IconButton(
-            tooltip: 'Export CSV',
-            onPressed: _export,
-            icon: const Icon(Icons.file_download_outlined),
-          ),
-          IconButton(
-            onPressed: () async {
-              await context.push('/dispatch/new');
-              if (!mounted) return;
-              ref.invalidate(dispatchRecordsProvider(query));
-              await ref.read(dispatchRecordsProvider(query).future);
-            },
-            icon: const Icon(Icons.add_circle_outline_rounded),
-          ),
+          if (_canExport)
+            IconButton(
+              tooltip: 'Export CSV',
+              onPressed: _export,
+              icon: const Icon(Icons.file_download_outlined),
+            ),
+          if (_canCreate)
+            IconButton(
+              onPressed: () async {
+                await context.push('/dispatch/new');
+                if (!mounted) return;
+                ref.invalidate(dispatchRecordsProvider(query));
+                await ref.read(dispatchRecordsProvider(query).future);
+              },
+              icon: const Icon(Icons.add_circle_outline_rounded),
+            ),
         ],
       ),
       child: SafeArea(
