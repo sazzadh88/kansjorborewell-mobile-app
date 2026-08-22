@@ -33,6 +33,7 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
   IconData get _icon => switch (widget.resource) {
     'vehicles' => Icons.local_shipping_outlined,
     'drivers' => Icons.badge_outlined,
+    'machines' => Icons.precision_manufacturing_outlined,
     _ => Icons.storefront_outlined,
   };
 
@@ -168,6 +169,9 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
       case 'drivers':
         ref.invalidate(driversProvider);
         break;
+      case 'machines':
+        ref.invalidate(machinesProvider);
+        break;
       default:
         ref.invalidate(partiesProvider);
     }
@@ -227,6 +231,7 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
     final provider = switch (widget.resource) {
       'vehicles' => vehiclesProvider,
       'drivers' => driversProvider,
+      'machines' => machinesProvider,
       _ => partiesProvider,
     };
     final items = ref.watch(provider);
@@ -318,7 +323,15 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
                 onRetry: () => ref.invalidate(provider),
               ),
               data: (rows) {
-                if (rows.isEmpty) {
+                final maps = rows is List<Map<String, dynamic>>
+                    ? rows
+                    : rows.map((r) {
+                        if (r is MachineModel) {
+                          return {'id': r.id, 'name': r.name, 'code': r.code};
+                        }
+                        return r as Map<String, dynamic>;
+                      }).toList();
+                if (maps.isEmpty) {
                   return EmptyState(
                     title: 'No records yet',
                     message: _canWrite
@@ -326,7 +339,7 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
                         : 'No ${widget.title.toLowerCase()} records yet.',
                   );
                 }
-                return Column(children: rows.map(_recordTile).toList());
+                return Column(children: maps.map(_recordTile).toList());
               },
             ),
           ],

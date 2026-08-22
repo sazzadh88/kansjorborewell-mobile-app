@@ -46,6 +46,7 @@ final Map<String, String> routePermissions = {
   '/masters/parties': 'masters.view',
   '/masters/vehicles': 'masters.view',
   '/masters/drivers': 'masters.view',
+  '/masters/machines': 'products.view',
 };
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -182,6 +183,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           resource: 'drivers',
           title: 'Drivers',
           fields: ['name', 'mobile', 'license_number'],
+        ),
+      ),
+      GoRoute(
+        path: '/masters/machines',
+        builder: (context, state) => const MasterManagementScreen(
+          resource: 'machines',
+          title: 'Machines',
+          fields: ['name', 'code'],
         ),
       ),
     ],
