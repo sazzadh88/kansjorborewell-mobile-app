@@ -8,7 +8,7 @@ import 'core/api_client.dart';
 import 'navigation/shortcuts.dart';
 import 'router.dart';
 import 'theme/desk_theme.dart';
-import 'theme/theme_provider.dart';
+import 'theme/font_scale_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,14 +49,16 @@ class DeskApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final fontScale = ref.watch(fontScaleProvider);
 
     return DesktopShortcuts(
       child: MaterialApp.router(
         title: 'Kansjor Borewell — Back Office',
-        theme: DeskTheme.light(),
-        darkTheme: DeskTheme.dark(),
-        themeMode: themeMode,
+        theme: DeskTheme.light().copyWith(
+          textTheme: DeskTheme.light().textTheme.apply(
+            fontSizeFactor: fontScale,
+          ),
+        ),
         routerConfig: ref.watch(routerProvider),
         debugShowCheckedModeBanner: false,
       ),

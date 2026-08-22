@@ -34,9 +34,7 @@ class AppShell extends ConsumerWidget {
           AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             width: collapsed ? 64 : 220,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF14171B)
-                : const Color(0xFF1F2937),
+            color: const Color(0xFF1F2937),
             child: Column(
               children: [
                 SizedBox(

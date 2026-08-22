@@ -14,6 +14,7 @@ import '../screens/loading_groups_screen.dart';
 import '../screens/reports_screen.dart';
 import '../screens/masters_screen.dart';
 import '../screens/roles_screen.dart';
+import '../screens/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
@@ -77,6 +78,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/roles',
         pageBuilder: (context, state) => const NoTransitionPage(child: RolesScreen()),
+      ),
+      GoRoute(
+        path: '/settings',
+        pageBuilder: (context, state) => const NoTransitionPage(child: SettingsScreen()),
       ),
     ],
   );

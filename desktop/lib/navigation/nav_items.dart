@@ -75,4 +75,9 @@ const navItems = <NavItem>[
     icon: Icons.admin_panel_settings_outlined,
     permission: 'roles.manage',
   ),
+  NavItem(
+    label: 'Settings',
+    path: '/settings',
+    icon: Icons.settings_outlined,
+  ),
 ];

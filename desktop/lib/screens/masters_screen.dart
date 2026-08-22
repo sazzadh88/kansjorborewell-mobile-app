@@ -5,7 +5,7 @@ import 'package:core/core.dart';
 import '../widgets/desk_page.dart';
 import '../theme/desk_theme.dart';
 
-enum _MasterTab { products, sizes, designs, users, parties, vehicles, drivers }
+enum _MasterTab { products, sizes, designs, machines, users, parties, vehicles, drivers }
 
 class MastersScreen extends ConsumerStatefulWidget {
   const MastersScreen({super.key});
@@ -316,6 +316,54 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
     }
   }
 
+  Future<void> _openMachineDialog([Map<String, dynamic>? item]) async {
+    final nameCtrl = TextEditingController(text: item?['name']?.toString() ?? '');
+    final codeCtrl = TextEditingController(text: item?['code']?.toString() ?? '');
+    bool isActive = item?['is_active'] as bool? ?? true;
+
+    final saved = await _formDialog(
+      title: item == null ? 'New machine' : 'Edit machine',
+      icon: Icons.precision_manufacturing_outlined,
+      children: [
+        _DialogField(controller: nameCtrl, label: 'Name', hint: 'e.g. Hydraulic Press 1'),
+        _DialogField(controller: codeCtrl, label: 'Code', hint: 'e.g. HP-1'),
+        StatefulBuilder(
+          builder: (ctx, setInner) => SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Active'),
+            value: isActive,
+            onChanged: (val) => setInner(() => isActive = val),
+          ),
+        ),
+      ],
+    );
+
+    if (saved == null) return;
+    final name = nameCtrl.text.trim();
+    final code = codeCtrl.text.trim();
+    if (name.isEmpty || code.isEmpty) {
+      _toast('Name and code are required.', error: true);
+      return;
+    }
+    final payload = <String, dynamic>{
+      'name': name,
+      'code': code,
+      'is_active': isActive,
+    };
+    try {
+      final api = ref.read(apiClientProvider);
+      if (item == null) {
+        await api.createMaster('machines', payload);
+      } else {
+        await api.updateMaster('machines', (item['id'] as num).toInt(), payload);
+      }
+      ref.invalidate(machinesProvider);
+      _toast(item == null ? 'Machine created.' : 'Machine updated.');
+    } catch (e) {
+      _toast(apiErrorMessage(e), error: true);
+    }
+  }
+
   Future<void> _openUserDialog([Map<String, dynamic>? user]) async {
     final roles = await ref.read(rolesProvider.future);
     int? roleId = user?['role'] is Map
@@ -484,9 +532,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                     SizedBox(
                       width: 220,
                       child: Container(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? DeskColors.canvasDark
-                            : const Color(0xFFFAFBFC),
+                        color: const Color(0xFFFAFBFC),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -524,6 +570,13 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                               title: 'Design patterns',
                               subtitle: 'Paver patterns & colors',
                               onTap: () => setState(() => _tab = _MasterTab.designs),
+                            ),
+                            _CategoryTile(
+                              selected: _tab == _MasterTab.machines,
+                              icon: Icons.precision_manufacturing_outlined,
+                              title: 'Machines',
+                              subtitle: 'Presses & equipment',
+                              onTap: () => setState(() => _tab = _MasterTab.machines),
                             ),
                             const Divider(height: 8),
                             _CategoryTile(
@@ -566,6 +619,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                         _MasterTab.products => _buildProducts(),
                         _MasterTab.sizes => _buildSizes(),
                         _MasterTab.designs => _buildDesigns(),
+                        _MasterTab.machines => _buildMachines(),
                         _MasterTab.users => _canManageStaff
                             ? _buildUsers()
                             : const Center(child: Text('You do not have permission to manage users.')),
@@ -820,6 +874,74 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                             message: 'Designs used in production entries cannot be deleted.',
                             action: () => ref.read(apiClientProvider).deleteDesign(d.id),
                             onDone: () => ref.invalidate(designsProvider),
+                          ),
+                        ),
+                      ],
+                    ])),
+                  ])).toList(),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMachines() {
+    final machines = ref.watch(machinesProvider);
+    return machines.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(child: Text(apiErrorMessage(error))),
+      data: (items) {
+        final filtered = items
+            .where((m) => _search.isEmpty || m.name.toLowerCase().contains(_search) || m.code.toLowerCase().contains(_search))
+            .toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _headerBar(
+              'Machines',
+              '${filtered.length} of ${items.length}',
+              onAdd: () => _openMachineDialog(),
+              addLabel: 'New machine',
+              canAdd: _canManageProducts,
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: SingleChildScrollView(
+                child: DataTable(
+                  columnSpacing: 28,
+                  columns: const [
+                    DataColumn(label: Text('NAME')),
+                    DataColumn(label: Text('CODE')),
+                    DataColumn(label: Text('STATUS')),
+                    DataColumn(label: Text('')),
+                  ],
+                  rows: filtered.map((m) => DataRow(cells: [
+                    DataCell(Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600))),
+                    DataCell(Text(m.code)),
+                    DataCell(Chip(
+                      label: const Text('Active', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: const Color(0xFFE7F6EC),
+                      side: BorderSide.none,
+                    )),
+                    DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                      if (_canManageProducts) ...[
+                        IconButton(
+                          tooltip: 'Edit',
+                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          onPressed: () => _openMachineDialog({'id': m.id, 'name': m.name, 'code': m.code, 'is_active': true}),
+                        ),
+                        IconButton(
+                          tooltip: 'Delete',
+                          icon: const Icon(Icons.delete_outline, size: 16, color: DeskColors.danger),
+                          onPressed: () => _confirmDelete(
+                            title: 'Delete ${m.name}?',
+                            message: 'Machines used in production entries cannot be deleted.',
+                            action: () => ref.read(apiClientProvider).deleteMaster('machines', m.id),
+                            onDone: () => ref.invalidate(machinesProvider),
                           ),
                         ),
                       ],

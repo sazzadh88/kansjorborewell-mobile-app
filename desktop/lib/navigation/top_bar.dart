@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:core/core.dart';
 
 import 'shortcuts.dart';
-import '../theme/theme_provider.dart';
 
 class TopBar extends ConsumerWidget {
   const TopBar({super.key});
@@ -12,22 +11,19 @@ class TopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF191C21) : Colors.white,
+      decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(
-          bottom: BorderSide(
-            color: isDark ? const Color(0xFF2C3037) : const Color(0xFFE1E4E9),
-          ),
+          bottom: BorderSide(color: Color(0xFFE1E4E9)),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.search_rounded, size: 18, color: Colors.grey),
+          const Icon(Icons.search_rounded, size: 18, color: Colors.grey),
           const SizedBox(width: 8),
           SizedBox(
             width: 240,
@@ -45,15 +41,6 @@ class TopBar extends ConsumerWidget {
           if (user != null)
             _RoleBadge(role: user.role),
           const SizedBox(width: 8),
-          IconButton(
-            tooltip: isDark ? 'Switch to Light mode' : 'Switch to Dark mode',
-            onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
-            icon: Icon(
-              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 4),
           IconButton(
             tooltip: 'Notifications',
             onPressed: () {},
