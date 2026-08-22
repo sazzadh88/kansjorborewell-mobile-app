@@ -331,39 +331,32 @@ class ApiClient {
     _query('/reports/inventory', from: from, to: to, page: page, perPage: perPage),
   );
 
-  Future<String> exportInventoryCsv({
-    required String from,
-    required String to,
-  }) async {
+  Future<String> _exportCsv(String path, {required String from, required String to}) async {
     final response = await dio.get(
-      '/reports/inventory/export?from=$from&to=$to',
-      options: Options(responseType: ResponseType.plain),
+      '$path?from=$from&to=$to',
+      options: Options(
+        responseType: ResponseType.plain,
+        validateStatus: (status) => status != null && status >= 200 && status < 400,
+      ),
     );
     return response.data.toString();
   }
 
+  Future<String> exportInventoryCsv({
+    required String from,
+    required String to,
+  }) => _exportCsv('/reports/inventory/export', from: from, to: to);
+
   Future<String> exportGstCsv({
     required String from,
     required String to,
-  }) async {
-    final response = await dio.get(
-      '/reports/gst/export?from=$from&to=$to',
-      options: Options(responseType: ResponseType.plain),
-    );
-    return response.data.toString();
-  }
+  }) => _exportCsv('/reports/gst/export', from: from, to: to);
 
   Future<String> exportCsv(
     String resource, {
     required String from,
     required String to,
-  }) async {
-    final response = await dio.get(
-      '/$resource/export?from=$from&to=$to',
-      options: Options(responseType: ResponseType.plain),
-    );
-    return response.data.toString();
-  }
+  }) => _exportCsv('/$resource/export', from: from, to: to);
 
   Future<String> saveCsvToDownloads(String fileName, String content) async {
     final saver = _saveCsv;
@@ -410,7 +403,12 @@ String apiErrorMessage(Object error) {
       return responseMessage;
     }
     if (error.response?.statusCode != null) {
-      return 'API request failed (${error.response!.statusCode}).';
+      final statusCode = error.response!.statusCode;
+      final body = error.response?.data;
+      if (body is String && body.isNotEmpty && body.length < 500) {
+        return 'API error ($statusCode): $body';
+      }
+      return 'API request failed ($statusCode).';
     }
     return switch (error.type) {
       DioExceptionType.connectionTimeout ||
