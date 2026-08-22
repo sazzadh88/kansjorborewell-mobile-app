@@ -32,17 +32,11 @@ jobs:
 
       - name: Create key.properties
         if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        env:
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
         run: |
-          cat > mobile/android/key.properties <<EOF
-          storePassword=$ANDROID_STORE_PASSWORD
-          keyPassword=$ANDROID_KEY_PASSWORD
-          keyAlias=$ANDROID_KEY_ALIAS
-          storeFile=../upload-keystore.jks
-          EOF
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" > mobile/android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> mobile/android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> mobile/android/key.properties
+          echo "storeFile=../upload-keystore.jks" >> mobile/android/key.properties
 
       - name: Install dependencies
         working-directory: mobile
