@@ -216,6 +216,13 @@ class ProfileScreen extends ConsumerWidget {
                 subtitle: 'Manage paver patterns and colors',
                 onTap: () => context.push('/masters/design-patterns'),
               ),
+              const SizedBox(height: 8),
+              _ActionTile(
+                icon: Icons.precision_manufacturing_outlined,
+                title: 'Machines',
+                subtitle: 'Manage production machines',
+                onTap: () => context.push('/masters/machines'),
+              ),
               const SizedBox(height: 18),
             ],
             if (canViewMasters) ...[

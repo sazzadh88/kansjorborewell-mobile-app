@@ -158,16 +158,19 @@ class MachineModel {
     required this.id,
     required this.name,
     required this.code,
+    required this.isActive,
   });
 
   final int id;
   final String name;
   final String code;
+  final bool isActive;
 
   factory MachineModel.fromJson(Map<String, dynamic> json) => MachineModel(
     id: _parseInt(json['id']),
     name: json['name']?.toString() ?? 'Machine',
     code: json['code']?.toString() ?? '',
+    isActive: json['is_active'] as bool? ?? true,
   );
 }
 

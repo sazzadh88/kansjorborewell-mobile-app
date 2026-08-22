@@ -32,6 +32,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isLogin ? null : '/login';
       }
       if (isLogin) return '/dashboard';
+
+      final required = _routePermissions[location];
+      if (required != null &&
+          !(required.any((p) => auth.value!.hasPermission(p)))) {
+        return '/dashboard';
+      }
       return null;
     },
     routes: [
@@ -92,3 +98,16 @@ class _AuthRefresh extends ChangeNotifier {
     ref.listen(authProvider, (_, __) => notifyListeners());
   }
 }
+
+/// Mirrors the backend `perm:` middleware in routes/api.php.
+const _routePermissions = <String, List<String>>{
+  '/production': ['production.view'],
+  '/dispatch': ['dispatch.view'],
+  '/ledger': ['reports.view', 'dispatch.view'],
+  '/inventory': ['inventory.view'],
+  '/striking-groups': ['striking.view'],
+  '/loading-groups': ['loading.view'],
+  '/reports': ['reports.view'],
+  '/masters': ['masters.view', 'products.view', 'staff.manage'],
+  '/roles': ['roles.manage'],
+};

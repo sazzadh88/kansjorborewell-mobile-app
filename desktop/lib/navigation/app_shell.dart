@@ -59,8 +59,7 @@ class AppShell extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
                       for (final item in navItems)
-                        if (item.permission == null ||
-                            (user?.hasPermission(item.permission!) ?? false))
+                        if (item.allowedFor(user))
                           _NavTile(
                             item: item,
                             collapsed: collapsed,

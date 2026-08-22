@@ -18,12 +18,32 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
   _MasterTab _tab = _MasterTab.products;
   String _search = '';
 
+  _MasterTab get _initialTab {
+    if (ref.read(authProvider).value?.hasPermission('products.view') ?? false) {
+      return _MasterTab.products;
+    }
+    if (ref.read(authProvider).value?.hasPermission('masters.view') ?? false) {
+      return _MasterTab.parties;
+    }
+    return _MasterTab.users;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tab = _initialTab;
+  }
+
   bool get _canManageProducts =>
       ref.watch(authProvider).value?.hasPermission('products.manage') ?? false;
   bool get _canManageStaff =>
       ref.watch(authProvider).value?.hasPermission('staff.manage') ?? false;
   bool get _canManageMasters =>
       ref.watch(authProvider).value?.hasPermission('masters.manage') ?? false;
+  bool get _canViewProducts =>
+      ref.watch(authProvider).value?.hasPermission('products.view') ?? false;
+  bool get _canViewMasters =>
+      ref.watch(authProvider).value?.hasPermission('masters.view') ?? false;
 
   Future<void> _openMasterRecordDialog(
     String title,
@@ -550,65 +570,71 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                               ),
                             ),
                             const Divider(height: 1),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.products,
-                              icon: Icons.view_module_outlined,
-                              title: 'Products',
-                              subtitle: 'Brick types & sizes',
-                              onTap: () => setState(() => _tab = _MasterTab.products),
-                            ),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.sizes,
-                              icon: Icons.straighten_outlined,
-                              title: 'Thickness / Sizes',
-                              subtitle: 'Selectable sizes',
-                              onTap: () => setState(() => _tab = _MasterTab.sizes),
-                            ),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.designs,
-                              icon: Icons.texture_outlined,
-                              title: 'Design patterns',
-                              subtitle: 'Paver patterns & colors',
-                              onTap: () => setState(() => _tab = _MasterTab.designs),
-                            ),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.machines,
-                              icon: Icons.precision_manufacturing_outlined,
-                              title: 'Machines',
-                              subtitle: 'Presses & equipment',
-                              onTap: () => setState(() => _tab = _MasterTab.machines),
-                            ),
-                            const Divider(height: 8),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.parties,
-                              icon: Icons.storefront_outlined,
-                              title: 'Parties',
-                              subtitle: 'Dispatch buyers',
-                              onTap: () => setState(() => _tab = _MasterTab.parties),
-                            ),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.vehicles,
-                              icon: Icons.local_shipping_outlined,
-                              title: 'Vehicles',
-                              subtitle: 'Dispatch vehicles',
-                              onTap: () => setState(() => _tab = _MasterTab.vehicles),
-                            ),
-                            _CategoryTile(
-                              selected: _tab == _MasterTab.drivers,
-                              icon: Icons.badge_outlined,
-                              title: 'Drivers',
-                              subtitle: 'Dispatch drivers',
-                              onTap: () => setState(() => _tab = _MasterTab.drivers),
-                            ),
-                            const Divider(height: 8),
-                            _CategoryTile(
-                              enabled: _canManageStaff,
-                              selected: _tab == _MasterTab.users,
-                              icon: Icons.person_outline,
-                              title: 'Users',
-                              subtitle: 'Accounts & roles',
-                              onTap: () => setState(() => _tab = _MasterTab.users),
-                            ),
+                            if (_canViewProducts) ...[
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.products,
+                                icon: Icons.view_module_outlined,
+                                title: 'Products',
+                                subtitle: 'Brick types & sizes',
+                                onTap: () => setState(() => _tab = _MasterTab.products),
+                              ),
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.sizes,
+                                icon: Icons.straighten_outlined,
+                                title: 'Thickness / Sizes',
+                                subtitle: 'Selectable sizes',
+                                onTap: () => setState(() => _tab = _MasterTab.sizes),
+                              ),
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.designs,
+                                icon: Icons.texture_outlined,
+                                title: 'Design patterns',
+                                subtitle: 'Paver patterns & colors',
+                                onTap: () => setState(() => _tab = _MasterTab.designs),
+                              ),
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.machines,
+                                icon: Icons.precision_manufacturing_outlined,
+                                title: 'Machines',
+                                subtitle: 'Presses & equipment',
+                                onTap: () => setState(() => _tab = _MasterTab.machines),
+                              ),
+                            ],
+                            if (_canViewMasters) ...[
+                              const Divider(height: 8),
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.parties,
+                                icon: Icons.storefront_outlined,
+                                title: 'Parties',
+                                subtitle: 'Dispatch buyers',
+                                onTap: () => setState(() => _tab = _MasterTab.parties),
+                              ),
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.vehicles,
+                                icon: Icons.local_shipping_outlined,
+                                title: 'Vehicles',
+                                subtitle: 'Dispatch vehicles',
+                                onTap: () => setState(() => _tab = _MasterTab.vehicles),
+                              ),
+                              _CategoryTile(
+                                selected: _tab == _MasterTab.drivers,
+                                icon: Icons.badge_outlined,
+                                title: 'Drivers',
+                                subtitle: 'Dispatch drivers',
+                                onTap: () => setState(() => _tab = _MasterTab.drivers),
+                              ),
+                            ],
+                            if (_canManageStaff) ...[
+                              const Divider(height: 8),
+                              _CategoryTile(
+                                enabled: _canManageStaff,
+                                selected: _tab == _MasterTab.users,
+                                icon: Icons.person_outline,
+                                title: 'Users',
+                                subtitle: 'Accounts & roles',
+                                onTap: () => setState(() => _tab = _MasterTab.users),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -922,9 +948,11 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                     DataCell(Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600))),
                     DataCell(Text(m.code)),
                     DataCell(Chip(
-                      label: const Text('Active', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                      label: Text(m.isActive ? 'Active' : 'Inactive', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: const Color(0xFFE7F6EC),
+                      backgroundColor: m.isActive
+                          ? const Color(0xFFE7F6EC)
+                          : const Color(0xFFF1F2F4),
                       side: BorderSide.none,
                     )),
                     DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
@@ -932,7 +960,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                         IconButton(
                           tooltip: 'Edit',
                           icon: const Icon(Icons.edit_outlined, size: 16),
-                          onPressed: () => _openMachineDialog({'id': m.id, 'name': m.name, 'code': m.code, 'is_active': true}),
+                          onPressed: () => _openMachineDialog({'id': m.id, 'name': m.name, 'code': m.code, 'is_active': m.isActive}),
                         ),
                         IconButton(
                           tooltip: 'Delete',

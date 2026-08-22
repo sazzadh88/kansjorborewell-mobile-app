@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:core/core.dart';
 
 class NavItem {
   const NavItem({
@@ -6,12 +7,24 @@ class NavItem {
     required this.path,
     required this.icon,
     this.permission,
+    this.anyOf = const [],
   });
 
   final String label;
   final String path;
   final IconData icon;
   final String? permission;
+
+  /// Alternative permissions — if the user has ANY of these, the item shows.
+  final List<String> anyOf;
+
+  bool allowedFor(UserModel? user) {
+    if (permission == null && anyOf.isEmpty) return true;
+    if (permission != null && (user?.hasPermission(permission!) ?? false)) {
+      return true;
+    }
+    return anyOf.any((p) => user?.hasPermission(p) ?? false);
+  }
 }
 
 const navItems = <NavItem>[
@@ -37,7 +50,7 @@ const navItems = <NavItem>[
     label: 'Stock ledger',
     path: '/ledger',
     icon: Icons.receipt_long_outlined,
-    permission: 'reports.view',
+    anyOf: ['reports.view', 'dispatch.view'],
   ),
   NavItem(
     label: 'Inventory',
@@ -67,7 +80,7 @@ const navItems = <NavItem>[
     label: 'Masters',
     path: '/masters',
     icon: Icons.folder_copy_outlined,
-    permission: 'masters.view',
+    anyOf: ['masters.view', 'products.view', 'staff.manage'],
   ),
   NavItem(
     label: 'Roles',
@@ -81,3 +94,4 @@ const navItems = <NavItem>[
     icon: Icons.settings_outlined,
   ),
 ];
+
