@@ -1,0 +1,2116 @@
+{
+  "generated_at": "2026-08-12T09:49:45Z",
+  "base_url": "http://127.0.0.1:8000/api",
+  "database": "",
+  "data_source": "Live php artisan serve process and configured database. Requests were made with curl; probe records remain in the database.",
+  "endpoint_count": 69,
+  "passed_http_responses": 69,
+  "failed_http_responses": 0,
+  "results": [
+    {
+      "name": "Login",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/login",
+      "request": {
+        "mobile": "9999999999",
+        "password": "password"
+      },
+      "status": 200,
+      "response": {
+        "token": "3|buCItOFqfeDTrgjicaxO2R1gYHsRQaICKlDrjT2t943c5826",
+        "user": {
+          "id": 1,
+          "name": "System Admin",
+          "email": "admin@jpbricks.test",
+          "email_verified_at": null,
+          "created_at": "2026-08-12T08:51:46.000000Z",
+          "updated_at": "2026-08-12T08:51:46.000000Z",
+          "mobile": "9999999999",
+          "role_id": 1,
+          "role": {
+            "id": 1,
+            "name": "admin",
+            "created_at": "2026-08-12T08:51:46.000000Z",
+            "updated_at": "2026-08-12T08:51:46.000000Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "Current user",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/me",
+      "request": null,
+      "status": 200,
+      "response": {
+        "user": {
+          "id": 1,
+          "name": "System Admin",
+          "email": "admin@jpbricks.test",
+          "email_verified_at": null,
+          "created_at": "2026-08-12T08:51:46.000000Z",
+          "updated_at": "2026-08-12T08:51:46.000000Z",
+          "mobile": "9999999999",
+          "role_id": 1,
+          "role": {
+            "id": 1,
+            "name": "admin",
+            "created_at": "2026-08-12T08:51:46.000000Z",
+            "updated_at": "2026-08-12T08:51:46.000000Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "Dashboard summary",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/dashboard/summary",
+      "request": null,
+      "status": 200,
+      "response": {
+        "date": "2026-08-12",
+        "brick_types": [
+          {
+            "id": 1,
+            "name": "Fly Ash Brick 4 inch",
+            "code": "FAB-4",
+            "current_stock": 0,
+            "reorder_level": 1000
+          },
+          {
+            "id": 2,
+            "name": "Fly Ash Brick 6 inch",
+            "code": "FAB-6",
+            "current_stock": 0,
+            "reorder_level": 1000
+          },
+          {
+            "id": 3,
+            "name": "Probe Brick 1786527997 updated",
+            "code": "PROBE1786527997",
+            "current_stock": 100,
+            "reorder_level": 10
+          },
+          {
+            "id": 5,
+            "name": "Probe Brick 1786528127",
+            "code": "PROBE1786528127",
+            "current_stock": 75,
+            "reorder_level": 10
+          }
+        ],
+        "production_qty": 200,
+        "sale_qty": 25,
+        "low_stock_raw_materials": []
+      }
+    },
+    {
+      "name": "Raw material create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/raw-materials",
+      "request": {
+        "name": "Probe Fly Ash 1786528183",
+        "unit": "kg",
+        "current_stock": 1000,
+        "reorder_level": 10
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 5,
+          "name": "Probe Fly Ash 1786528183",
+          "unit": "kg",
+          "current_stock": "1000.000",
+          "reorder_level": "10.000",
+          "is_active": null
+        }
+      }
+    },
+    {
+      "name": "Raw material list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/raw-materials",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "id": 5,
+            "name": "Probe Fly Ash 1786528183",
+            "unit": "kg",
+            "current_stock": "1000.000",
+            "reorder_level": "10.000",
+            "is_active": true
+          },
+          {
+            "id": 3,
+            "name": "Probe Fly Ash 1786528127",
+            "unit": "kg",
+            "current_stock": "991.667",
+            "reorder_level": "10.000",
+            "is_active": true
+          },
+          {
+            "id": 1,
+            "name": "Probe Fly Ash 1786527997 updated",
+            "unit": "kg",
+            "current_stock": "991.667",
+            "reorder_level": "10.000",
+            "is_active": true
+          }
+        ],
+        "links": {
+          "first": "http://127.0.0.1:8000/api/raw-materials?page=1",
+          "last": "http://127.0.0.1:8000/api/raw-materials?page=1",
+          "prev": null,
+          "next": null
+        },
+        "meta": {
+          "current_page": 1,
+          "from": 1,
+          "last_page": 1,
+          "links": [
+            {
+              "url": null,
+              "label": "&laquo; Previous",
+              "page": null,
+              "active": false
+            },
+            {
+              "url": "http://127.0.0.1:8000/api/raw-materials?page=1",
+              "label": "1",
+              "page": 1,
+              "active": true
+            },
+            {
+              "url": null,
+              "label": "Next &raquo;",
+              "page": null,
+              "active": false
+            }
+          ],
+          "path": "http://127.0.0.1:8000/api/raw-materials",
+          "per_page": 25,
+          "to": 3,
+          "total": 3
+        }
+      }
+    },
+    {
+      "name": "Raw material show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/raw-materials/5",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 5,
+          "name": "Probe Fly Ash 1786528183",
+          "unit": "kg",
+          "current_stock": "1000.000",
+          "reorder_level": "10.000",
+          "is_active": true
+        }
+      }
+    },
+    {
+      "name": "Raw material update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/raw-materials/5",
+      "request": {
+        "name": "Probe Fly Ash 1786528183",
+        "unit": "kg",
+        "current_stock": 1000,
+        "reorder_level": 10
+      },
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 5,
+          "name": "Probe Fly Ash 1786528183",
+          "unit": "kg",
+          "current_stock": "1000.000",
+          "reorder_level": "10.000",
+          "is_active": true
+        }
+      }
+    },
+    {
+      "name": "Raw material destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/raw-materials",
+      "request": {
+        "name": "Probe Fly Ash 1786528183 disposable",
+        "unit": "kg",
+        "current_stock": 1000,
+        "reorder_level": 10
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 6,
+          "name": "Probe Fly Ash 1786528183 disposable",
+          "unit": "kg",
+          "current_stock": "1000.000",
+          "reorder_level": "10.000",
+          "is_active": null
+        }
+      }
+    },
+    {
+      "name": "Raw material destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/raw-materials/6",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Supplier create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/suppliers",
+      "request": {
+        "name": "Probe Supplier 1786528183",
+        "mobile": "9000000001",
+        "address": "Probe address"
+      },
+      "status": 201,
+      "response": {
+        "name": "Probe Supplier 1786528183",
+        "mobile": "9000000001",
+        "address": "Probe address",
+        "updated_at": "2026-08-12T09:49:43.000000Z",
+        "created_at": "2026-08-12T09:49:43.000000Z",
+        "id": 5
+      }
+    },
+    {
+      "name": "Supplier list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/suppliers",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 5,
+          "name": "Probe Supplier 1786528183",
+          "mobile": "9000000001",
+          "address": "Probe address",
+          "created_at": "2026-08-12T09:49:43.000000Z",
+          "updated_at": "2026-08-12T09:49:43.000000Z"
+        },
+        {
+          "id": 3,
+          "name": "Probe Supplier 1786528127",
+          "mobile": "9000000001",
+          "address": "Probe address",
+          "created_at": "2026-08-12T09:48:47.000000Z",
+          "updated_at": "2026-08-12T09:48:47.000000Z"
+        },
+        {
+          "id": 1,
+          "name": "Probe Supplier 1786527997 updated",
+          "mobile": "9000000001",
+          "address": "Probe address",
+          "created_at": "2026-08-12T09:46:37.000000Z",
+          "updated_at": "2026-08-12T09:46:37.000000Z"
+        }
+      ]
+    },
+    {
+      "name": "Supplier show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/suppliers/5",
+      "request": null,
+      "status": 200,
+      "response": {
+        "id": 5,
+        "name": "Probe Supplier 1786528183",
+        "mobile": "9000000001",
+        "address": "Probe address",
+        "created_at": "2026-08-12T09:49:43.000000Z",
+        "updated_at": "2026-08-12T09:49:43.000000Z"
+      }
+    },
+    {
+      "name": "Supplier update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/suppliers/5",
+      "request": {
+        "name": "Probe Supplier 1786528183",
+        "mobile": "9000000001",
+        "address": "Probe address"
+      },
+      "status": 200,
+      "response": {
+        "id": 5,
+        "name": "Probe Supplier 1786528183",
+        "mobile": "9000000001",
+        "address": "Probe address",
+        "created_at": "2026-08-12T09:49:43.000000Z",
+        "updated_at": "2026-08-12T09:49:43.000000Z"
+      }
+    },
+    {
+      "name": "Supplier destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/suppliers",
+      "request": {
+        "name": "Probe Supplier 1786528183 disposable",
+        "mobile": "9000000001",
+        "address": "Probe address"
+      },
+      "status": 201,
+      "response": {
+        "name": "Probe Supplier 1786528183 disposable",
+        "mobile": "9000000001",
+        "address": "Probe address",
+        "updated_at": "2026-08-12T09:49:43.000000Z",
+        "created_at": "2026-08-12T09:49:43.000000Z",
+        "id": 6
+      }
+    },
+    {
+      "name": "Supplier destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/suppliers/6",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Brick type create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/brick-types",
+      "request": {
+        "name": "Probe Brick 1786528183",
+        "code": "PROBE1786528183",
+        "reorder_level": 10
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": null,
+          "reorder_level": 10,
+          "is_active": null
+        }
+      }
+    },
+    {
+      "name": "Brick type list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/brick-types",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "id": 7,
+            "name": "Probe Brick 1786528183",
+            "code": "PROBE1786528183",
+            "current_stock": 0,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          {
+            "id": 5,
+            "name": "Probe Brick 1786528127",
+            "code": "PROBE1786528127",
+            "current_stock": 75,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          {
+            "id": 3,
+            "name": "Probe Brick 1786527997 updated",
+            "code": "PROBE1786527997",
+            "current_stock": 100,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          {
+            "id": 1,
+            "name": "Fly Ash Brick 4 inch",
+            "code": "FAB-4",
+            "current_stock": 0,
+            "reorder_level": 1000,
+            "is_active": true
+          },
+          {
+            "id": 2,
+            "name": "Fly Ash Brick 6 inch",
+            "code": "FAB-6",
+            "current_stock": 0,
+            "reorder_level": 1000,
+            "is_active": true
+          }
+        ],
+        "links": {
+          "first": "http://127.0.0.1:8000/api/brick-types?page=1",
+          "last": "http://127.0.0.1:8000/api/brick-types?page=1",
+          "prev": null,
+          "next": null
+        },
+        "meta": {
+          "current_page": 1,
+          "from": 1,
+          "last_page": 1,
+          "links": [
+            {
+              "url": null,
+              "label": "&laquo; Previous",
+              "page": null,
+              "active": false
+            },
+            {
+              "url": "http://127.0.0.1:8000/api/brick-types?page=1",
+              "label": "1",
+              "page": 1,
+              "active": true
+            },
+            {
+              "url": null,
+              "label": "Next &raquo;",
+              "page": null,
+              "active": false
+            }
+          ],
+          "path": "http://127.0.0.1:8000/api/brick-types",
+          "per_page": 25,
+          "to": 5,
+          "total": 5
+        }
+      }
+    },
+    {
+      "name": "Brick type show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/brick-types/7",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": 0,
+          "reorder_level": 10,
+          "is_active": true
+        }
+      }
+    },
+    {
+      "name": "Brick type update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/brick-types/7",
+      "request": {
+        "name": "Probe Brick 1786528183",
+        "code": "PROBE1786528183",
+        "reorder_level": 10
+      },
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": 0,
+          "reorder_level": 10,
+          "is_active": true
+        }
+      }
+    },
+    {
+      "name": "Brick type destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/brick-types",
+      "request": {
+        "name": "Probe Brick 1786528183 disposable",
+        "code": "PROBE1786528183-D",
+        "reorder_level": 10
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 8,
+          "name": "Probe Brick 1786528183 disposable",
+          "code": "PROBE1786528183-D",
+          "current_stock": null,
+          "reorder_level": 10,
+          "is_active": null
+        }
+      }
+    },
+    {
+      "name": "Brick type destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/brick-types/8",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Machine create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/machines",
+      "request": {
+        "name": "Probe Press 1786528183",
+        "code": "PROBE-PRESS1786528183"
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 7,
+          "name": "Probe Press 1786528183",
+          "code": "PROBE-PRESS1786528183",
+          "is_active": null
+        }
+      }
+    },
+    {
+      "name": "Machine list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/machines",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "id": 7,
+            "name": "Probe Press 1786528183",
+            "code": "PROBE-PRESS1786528183",
+            "is_active": true
+          },
+          {
+            "id": 5,
+            "name": "Probe Press 1786528127",
+            "code": "PROBE-PRESS1786528127",
+            "is_active": true
+          },
+          {
+            "id": 3,
+            "name": "Probe Press 1786527997 updated",
+            "code": "PROBE-PRESS1786527997",
+            "is_active": true
+          },
+          {
+            "id": 1,
+            "name": "Hydraulic Press 1",
+            "code": "PRESS-1",
+            "is_active": true
+          },
+          {
+            "id": 2,
+            "name": "Hydraulic Press 2",
+            "code": "PRESS-2",
+            "is_active": true
+          }
+        ],
+        "links": {
+          "first": "http://127.0.0.1:8000/api/machines?page=1",
+          "last": "http://127.0.0.1:8000/api/machines?page=1",
+          "prev": null,
+          "next": null
+        },
+        "meta": {
+          "current_page": 1,
+          "from": 1,
+          "last_page": 1,
+          "links": [
+            {
+              "url": null,
+              "label": "&laquo; Previous",
+              "page": null,
+              "active": false
+            },
+            {
+              "url": "http://127.0.0.1:8000/api/machines?page=1",
+              "label": "1",
+              "page": 1,
+              "active": true
+            },
+            {
+              "url": null,
+              "label": "Next &raquo;",
+              "page": null,
+              "active": false
+            }
+          ],
+          "path": "http://127.0.0.1:8000/api/machines",
+          "per_page": 25,
+          "to": 5,
+          "total": 5
+        }
+      }
+    },
+    {
+      "name": "Machine show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/machines/7",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 7,
+          "name": "Probe Press 1786528183",
+          "code": "PROBE-PRESS1786528183",
+          "is_active": true
+        }
+      }
+    },
+    {
+      "name": "Machine update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/machines/7",
+      "request": {
+        "name": "Probe Press 1786528183",
+        "code": "PROBE-PRESS1786528183"
+      },
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 7,
+          "name": "Probe Press 1786528183",
+          "code": "PROBE-PRESS1786528183",
+          "is_active": true
+        }
+      }
+    },
+    {
+      "name": "Machine destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/machines",
+      "request": {
+        "name": "Probe Press 1786528183 disposable",
+        "code": "PROBE-PRESS1786528183-D"
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 8,
+          "name": "Probe Press 1786528183 disposable",
+          "code": "PROBE-PRESS1786528183-D",
+          "is_active": null
+        }
+      }
+    },
+    {
+      "name": "Machine destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/machines/8",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Vehicle create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/vehicles",
+      "request": {
+        "registration_number": "PROBE-1786528183",
+        "type": "Truck"
+      },
+      "status": 201,
+      "response": {
+        "registration_number": "PROBE-1786528183",
+        "type": "Truck",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 5
+      }
+    },
+    {
+      "name": "Vehicle list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/vehicles",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 5,
+          "registration_number": "PROBE-1786528183",
+          "type": "Truck",
+          "is_active": true,
+          "created_at": "2026-08-12T09:49:44.000000Z",
+          "updated_at": "2026-08-12T09:49:44.000000Z"
+        },
+        {
+          "id": 3,
+          "registration_number": "PROBE-1786528127",
+          "type": "Truck",
+          "is_active": true,
+          "created_at": "2026-08-12T09:48:48.000000Z",
+          "updated_at": "2026-08-12T09:48:48.000000Z"
+        },
+        {
+          "id": 1,
+          "registration_number": "PROBE-1786527997 updated",
+          "type": "Truck",
+          "is_active": true,
+          "created_at": "2026-08-12T09:46:37.000000Z",
+          "updated_at": "2026-08-12T09:46:37.000000Z"
+        }
+      ]
+    },
+    {
+      "name": "Vehicle show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/vehicles/5",
+      "request": null,
+      "status": 200,
+      "response": {
+        "id": 5,
+        "registration_number": "PROBE-1786528183",
+        "type": "Truck",
+        "is_active": true,
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Vehicle update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/vehicles/5",
+      "request": {
+        "registration_number": "PROBE-1786528183",
+        "type": "Truck"
+      },
+      "status": 200,
+      "response": {
+        "id": 5,
+        "registration_number": "PROBE-1786528183",
+        "type": "Truck",
+        "is_active": true,
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Vehicle destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/vehicles",
+      "request": {
+        "registration_number": "PROBE-1786528183-D",
+        "type": "Truck"
+      },
+      "status": 201,
+      "response": {
+        "registration_number": "PROBE-1786528183-D",
+        "type": "Truck",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 6
+      }
+    },
+    {
+      "name": "Vehicle destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/vehicles/6",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Driver create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/drivers",
+      "request": {
+        "name": "Probe Driver 1786528183",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183"
+      },
+      "status": 201,
+      "response": {
+        "name": "Probe Driver 1786528183",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 5
+      }
+    },
+    {
+      "name": "Driver list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/drivers",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 5,
+          "name": "Probe Driver 1786528183",
+          "mobile": "9000000002",
+          "license_number": "PROBE-LIC1786528183",
+          "created_at": "2026-08-12T09:49:44.000000Z",
+          "updated_at": "2026-08-12T09:49:44.000000Z"
+        },
+        {
+          "id": 3,
+          "name": "Probe Driver 1786528127",
+          "mobile": "9000000002",
+          "license_number": "PROBE-LIC1786528127",
+          "created_at": "2026-08-12T09:48:48.000000Z",
+          "updated_at": "2026-08-12T09:48:48.000000Z"
+        },
+        {
+          "id": 1,
+          "name": "Probe Driver 1786527997 updated",
+          "mobile": "9000000002",
+          "license_number": "PROBE-LIC1786527997",
+          "created_at": "2026-08-12T09:46:37.000000Z",
+          "updated_at": "2026-08-12T09:46:37.000000Z"
+        }
+      ]
+    },
+    {
+      "name": "Driver show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/drivers/5",
+      "request": null,
+      "status": 200,
+      "response": {
+        "id": 5,
+        "name": "Probe Driver 1786528183",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Driver update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/drivers/5",
+      "request": {
+        "name": "Probe Driver 1786528183",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183"
+      },
+      "status": 200,
+      "response": {
+        "id": 5,
+        "name": "Probe Driver 1786528183",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Driver destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/drivers",
+      "request": {
+        "name": "Probe Driver 1786528183 disposable",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183"
+      },
+      "status": 201,
+      "response": {
+        "name": "Probe Driver 1786528183 disposable",
+        "mobile": "9000000002",
+        "license_number": "PROBE-LIC1786528183",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 6
+      }
+    },
+    {
+      "name": "Driver destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/drivers/6",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Party create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/parties",
+      "request": {
+        "name": "Probe Party 1786528183",
+        "mobile": "9000000003",
+        "address": "Probe party address"
+      },
+      "status": 201,
+      "response": {
+        "name": "Probe Party 1786528183",
+        "mobile": "9000000003",
+        "address": "Probe party address",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 5
+      }
+    },
+    {
+      "name": "Party list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/parties",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 5,
+          "name": "Probe Party 1786528183",
+          "mobile": "9000000003",
+          "address": "Probe party address",
+          "created_at": "2026-08-12T09:49:44.000000Z",
+          "updated_at": "2026-08-12T09:49:44.000000Z"
+        },
+        {
+          "id": 3,
+          "name": "Probe Party 1786528127",
+          "mobile": "9000000003",
+          "address": "Probe party address",
+          "created_at": "2026-08-12T09:48:48.000000Z",
+          "updated_at": "2026-08-12T09:48:48.000000Z"
+        },
+        {
+          "id": 1,
+          "name": "Probe Party 1786527997 updated",
+          "mobile": "9000000003",
+          "address": "Probe party address",
+          "created_at": "2026-08-12T09:46:37.000000Z",
+          "updated_at": "2026-08-12T09:46:37.000000Z"
+        }
+      ]
+    },
+    {
+      "name": "Party show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/parties/5",
+      "request": null,
+      "status": 200,
+      "response": {
+        "id": 5,
+        "name": "Probe Party 1786528183",
+        "mobile": "9000000003",
+        "address": "Probe party address",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Party update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/parties/5",
+      "request": {
+        "name": "Probe Party 1786528183",
+        "mobile": "9000000003",
+        "address": "Probe party address"
+      },
+      "status": 200,
+      "response": {
+        "id": 5,
+        "name": "Probe Party 1786528183",
+        "mobile": "9000000003",
+        "address": "Probe party address",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Party destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/parties",
+      "request": {
+        "name": "Probe Party 1786528183 disposable",
+        "mobile": "9000000003",
+        "address": "Probe party address"
+      },
+      "status": 201,
+      "response": {
+        "name": "Probe Party 1786528183 disposable",
+        "mobile": "9000000003",
+        "address": "Probe party address",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 6
+      }
+    },
+    {
+      "name": "Party destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/parties/6",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Recipe create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/recipes",
+      "request": {
+        "brick_type_id": 7,
+        "output_qty": 100,
+        "ingredients": [
+          {
+            "raw_material_id": 5,
+            "quantity_per_batch": 10
+          }
+        ]
+      },
+      "status": 201,
+      "response": {
+        "brick_type_id": 7,
+        "output_qty": "100.000",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 5,
+        "brick_type": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": 0,
+          "reorder_level": 10,
+          "is_active": true,
+          "created_at": "2026-08-12T09:49:43.000000Z",
+          "updated_at": "2026-08-12T09:49:43.000000Z"
+        },
+        "ingredients": [
+          {
+            "id": 7,
+            "recipe_id": 5,
+            "raw_material_id": 5,
+            "quantity_per_batch": "10.000",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z",
+            "raw_material": {
+              "id": 5,
+              "name": "Probe Fly Ash 1786528183",
+              "unit": "kg",
+              "current_stock": "1000.000",
+              "reorder_level": "10.000",
+              "is_active": true,
+              "created_at": "2026-08-12T09:49:43.000000Z",
+              "updated_at": "2026-08-12T09:49:43.000000Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Recipe list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/recipes",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 5,
+          "brick_type_id": 7,
+          "output_qty": "100.000",
+          "is_active": true,
+          "created_at": "2026-08-12T09:49:44.000000Z",
+          "updated_at": "2026-08-12T09:49:44.000000Z",
+          "brick_type": {
+            "id": 7,
+            "name": "Probe Brick 1786528183",
+            "code": "PROBE1786528183",
+            "current_stock": 0,
+            "reorder_level": 10,
+            "is_active": true,
+            "created_at": "2026-08-12T09:49:43.000000Z",
+            "updated_at": "2026-08-12T09:49:43.000000Z"
+          },
+          "ingredients": [
+            {
+              "id": 7,
+              "recipe_id": 5,
+              "raw_material_id": 5,
+              "quantity_per_batch": "10.000",
+              "created_at": "2026-08-12T09:49:44.000000Z",
+              "updated_at": "2026-08-12T09:49:44.000000Z",
+              "raw_material": {
+                "id": 5,
+                "name": "Probe Fly Ash 1786528183",
+                "unit": "kg",
+                "current_stock": "1000.000",
+                "reorder_level": "10.000",
+                "is_active": true,
+                "created_at": "2026-08-12T09:49:43.000000Z",
+                "updated_at": "2026-08-12T09:49:43.000000Z"
+              }
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "brick_type_id": 5,
+          "output_qty": "120.000",
+          "is_active": true,
+          "created_at": "2026-08-12T09:48:48.000000Z",
+          "updated_at": "2026-08-12T09:48:48.000000Z",
+          "brick_type": {
+            "id": 5,
+            "name": "Probe Brick 1786528127",
+            "code": "PROBE1786528127",
+            "current_stock": 75,
+            "reorder_level": 10,
+            "is_active": true,
+            "created_at": "2026-08-12T09:48:47.000000Z",
+            "updated_at": "2026-08-12T09:48:48.000000Z"
+          },
+          "ingredients": [
+            {
+              "id": 5,
+              "recipe_id": 3,
+              "raw_material_id": 3,
+              "quantity_per_batch": "10.000",
+              "created_at": "2026-08-12T09:48:48.000000Z",
+              "updated_at": "2026-08-12T09:48:48.000000Z",
+              "raw_material": {
+                "id": 3,
+                "name": "Probe Fly Ash 1786528127",
+                "unit": "kg",
+                "current_stock": "991.667",
+                "reorder_level": "10.000",
+                "is_active": true,
+                "created_at": "2026-08-12T09:48:47.000000Z",
+                "updated_at": "2026-08-12T09:48:48.000000Z"
+              }
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "brick_type_id": 3,
+          "output_qty": "120.000",
+          "is_active": true,
+          "created_at": "2026-08-12T09:46:37.000000Z",
+          "updated_at": "2026-08-12T09:46:37.000000Z",
+          "brick_type": {
+            "id": 3,
+            "name": "Probe Brick 1786527997 updated",
+            "code": "PROBE1786527997",
+            "current_stock": 100,
+            "reorder_level": 10,
+            "is_active": true,
+            "created_at": "2026-08-12T09:46:37.000000Z",
+            "updated_at": "2026-08-12T09:46:37.000000Z"
+          },
+          "ingredients": [
+            {
+              "id": 2,
+              "recipe_id": 1,
+              "raw_material_id": 1,
+              "quantity_per_batch": "10.000",
+              "created_at": "2026-08-12T09:46:37.000000Z",
+              "updated_at": "2026-08-12T09:46:37.000000Z",
+              "raw_material": {
+                "id": 1,
+                "name": "Probe Fly Ash 1786527997 updated",
+                "unit": "kg",
+                "current_stock": "991.667",
+                "reorder_level": "10.000",
+                "is_active": true,
+                "created_at": "2026-08-12T09:46:37.000000Z",
+                "updated_at": "2026-08-12T09:46:37.000000Z"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recipe show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/recipes/5",
+      "request": null,
+      "status": 200,
+      "response": {
+        "id": 5,
+        "brick_type_id": 7,
+        "output_qty": "100.000",
+        "is_active": true,
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "brick_type": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": 0,
+          "reorder_level": 10,
+          "is_active": true,
+          "created_at": "2026-08-12T09:49:43.000000Z",
+          "updated_at": "2026-08-12T09:49:43.000000Z"
+        },
+        "ingredients": [
+          {
+            "id": 7,
+            "recipe_id": 5,
+            "raw_material_id": 5,
+            "quantity_per_batch": "10.000",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z",
+            "raw_material": {
+              "id": 5,
+              "name": "Probe Fly Ash 1786528183",
+              "unit": "kg",
+              "current_stock": "1000.000",
+              "reorder_level": "10.000",
+              "is_active": true,
+              "created_at": "2026-08-12T09:49:43.000000Z",
+              "updated_at": "2026-08-12T09:49:43.000000Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Recipe ingredients",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/recipes/5/ingredients",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 7,
+          "recipe_id": 5,
+          "raw_material_id": 5,
+          "quantity_per_batch": "10.000",
+          "created_at": "2026-08-12T09:49:44.000000Z",
+          "updated_at": "2026-08-12T09:49:44.000000Z",
+          "raw_material": {
+            "id": 5,
+            "name": "Probe Fly Ash 1786528183",
+            "unit": "kg",
+            "current_stock": "1000.000",
+            "reorder_level": "10.000",
+            "is_active": true,
+            "created_at": "2026-08-12T09:49:43.000000Z",
+            "updated_at": "2026-08-12T09:49:43.000000Z"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recipe update",
+      "method": "PATCH",
+      "url": "http://127.0.0.1:8000/api/recipes/5",
+      "request": {
+        "brick_type_id": 7,
+        "output_qty": 120,
+        "ingredients": [
+          {
+            "raw_material_id": 5,
+            "quantity_per_batch": 10
+          }
+        ]
+      },
+      "status": 200,
+      "response": {
+        "id": 5,
+        "brick_type_id": 7,
+        "output_qty": "120.000",
+        "is_active": true,
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "brick_type": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": 0,
+          "reorder_level": 10,
+          "is_active": true,
+          "created_at": "2026-08-12T09:49:43.000000Z",
+          "updated_at": "2026-08-12T09:49:43.000000Z"
+        },
+        "ingredients": [
+          {
+            "id": 8,
+            "recipe_id": 5,
+            "raw_material_id": 5,
+            "quantity_per_batch": "10.000",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z",
+            "raw_material": {
+              "id": 5,
+              "name": "Probe Fly Ash 1786528183",
+              "unit": "kg",
+              "current_stock": "1000.000",
+              "reorder_level": "10.000",
+              "is_active": true,
+              "created_at": "2026-08-12T09:49:43.000000Z",
+              "updated_at": "2026-08-12T09:49:43.000000Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Recipe destroy fixture create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/recipes",
+      "request": {
+        "brick_type_id": 7,
+        "output_qty": 100,
+        "ingredients": [
+          {
+            "raw_material_id": 5,
+            "quantity_per_batch": 10
+          }
+        ]
+      },
+      "status": 201,
+      "response": {
+        "brick_type_id": 7,
+        "output_qty": "100.000",
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 6,
+        "brick_type": {
+          "id": 7,
+          "name": "Probe Brick 1786528183",
+          "code": "PROBE1786528183",
+          "current_stock": 0,
+          "reorder_level": 10,
+          "is_active": true,
+          "created_at": "2026-08-12T09:49:43.000000Z",
+          "updated_at": "2026-08-12T09:49:43.000000Z"
+        },
+        "ingredients": [
+          {
+            "id": 9,
+            "recipe_id": 6,
+            "raw_material_id": 5,
+            "quantity_per_batch": "10.000",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z",
+            "raw_material": {
+              "id": 5,
+              "name": "Probe Fly Ash 1786528183",
+              "unit": "kg",
+              "current_stock": "1000.000",
+              "reorder_level": "10.000",
+              "is_active": true,
+              "created_at": "2026-08-12T09:49:43.000000Z",
+              "updated_at": "2026-08-12T09:49:43.000000Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Recipe destroy",
+      "method": "DELETE",
+      "url": "http://127.0.0.1:8000/api/recipes/6",
+      "request": null,
+      "status": 204,
+      "response": ""
+    },
+    {
+      "name": "Production create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/production-entries",
+      "request": {
+        "production_date": "2026-08-12",
+        "machine_id": 7,
+        "brick_type_id": 7,
+        "quantity_produced": 100,
+        "remarks": "API curl probe"
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 3,
+          "production_date": "2026-08-12",
+          "machine": {
+            "id": 7,
+            "name": "Probe Press 1786528183",
+            "code": "PROBE-PRESS1786528183",
+            "is_active": true
+          },
+          "brick_type": {
+            "id": 7,
+            "name": "Probe Brick 1786528183",
+            "code": "PROBE1786528183",
+            "current_stock": 100,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          "quantity_produced": 100,
+          "meter_reading_start": null,
+          "meter_reading_end": null,
+          "remarks": "API curl probe"
+        }
+      }
+    },
+    {
+      "name": "Production list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/production-entries?date=2026-08-12",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "id": 3,
+            "production_date": "2026-08-12",
+            "machine": {
+              "id": 7,
+              "name": "Probe Press 1786528183",
+              "code": "PROBE-PRESS1786528183",
+              "is_active": true
+            },
+            "brick_type": {
+              "id": 7,
+              "name": "Probe Brick 1786528183",
+              "code": "PROBE1786528183",
+              "current_stock": 100,
+              "reorder_level": 10,
+              "is_active": true
+            },
+            "quantity_produced": 100,
+            "meter_reading_start": null,
+            "meter_reading_end": null,
+            "remarks": "API curl probe"
+          },
+          {
+            "id": 2,
+            "production_date": "2026-08-12",
+            "machine": {
+              "id": 5,
+              "name": "Probe Press 1786528127",
+              "code": "PROBE-PRESS1786528127",
+              "is_active": true
+            },
+            "brick_type": {
+              "id": 5,
+              "name": "Probe Brick 1786528127",
+              "code": "PROBE1786528127",
+              "current_stock": 75,
+              "reorder_level": 10,
+              "is_active": true
+            },
+            "quantity_produced": 100,
+            "meter_reading_start": null,
+            "meter_reading_end": null,
+            "remarks": "API curl probe"
+          },
+          {
+            "id": 1,
+            "production_date": "2026-08-12",
+            "machine": {
+              "id": 3,
+              "name": "Probe Press 1786527997 updated",
+              "code": "PROBE-PRESS1786527997",
+              "is_active": true
+            },
+            "brick_type": {
+              "id": 3,
+              "name": "Probe Brick 1786527997 updated",
+              "code": "PROBE1786527997",
+              "current_stock": 100,
+              "reorder_level": 10,
+              "is_active": true
+            },
+            "quantity_produced": 100,
+            "meter_reading_start": null,
+            "meter_reading_end": null,
+            "remarks": "API probe"
+          }
+        ],
+        "links": {
+          "first": "http://127.0.0.1:8000/api/production-entries?page=1",
+          "last": "http://127.0.0.1:8000/api/production-entries?page=1",
+          "prev": null,
+          "next": null
+        },
+        "meta": {
+          "current_page": 1,
+          "from": 1,
+          "last_page": 1,
+          "links": [
+            {
+              "url": null,
+              "label": "&laquo; Previous",
+              "page": null,
+              "active": false
+            },
+            {
+              "url": "http://127.0.0.1:8000/api/production-entries?page=1",
+              "label": "1",
+              "page": 1,
+              "active": true
+            },
+            {
+              "url": null,
+              "label": "Next &raquo;",
+              "page": null,
+              "active": false
+            }
+          ],
+          "path": "http://127.0.0.1:8000/api/production-entries",
+          "per_page": 25,
+          "to": 3,
+          "total": 3
+        }
+      }
+    },
+    {
+      "name": "Production show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/production-entries/3",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 3,
+          "production_date": "2026-08-12",
+          "machine": {
+            "id": 7,
+            "name": "Probe Press 1786528183",
+            "code": "PROBE-PRESS1786528183",
+            "is_active": true
+          },
+          "brick_type": {
+            "id": 7,
+            "name": "Probe Brick 1786528183",
+            "code": "PROBE1786528183",
+            "current_stock": 100,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          "quantity_produced": 100,
+          "meter_reading_start": null,
+          "meter_reading_end": null,
+          "remarks": "API curl probe"
+        }
+      }
+    },
+    {
+      "name": "Dispatch create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/dispatches",
+      "request": {
+        "dispatch_date": "2026-08-12",
+        "brick_type_id": 7,
+        "quantity_loaded": 25,
+        "party_id": 5,
+        "vehicle_id": 5,
+        "driver_id": 5,
+        "freight_amount": 500,
+        "freight_paid": true
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "id": 2,
+          "dispatch_date": "2026-08-12",
+          "brick_type": {
+            "id": 7,
+            "name": "Probe Brick 1786528183",
+            "code": "PROBE1786528183",
+            "current_stock": 75,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          "quantity_loaded": 25,
+          "party": {
+            "id": 5,
+            "name": "Probe Party 1786528183",
+            "mobile": "9000000003",
+            "address": "Probe party address",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          "vehicle": {
+            "id": 5,
+            "registration_number": "PROBE-1786528183",
+            "type": "Truck",
+            "is_active": true,
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          "driver": {
+            "id": 5,
+            "name": "Probe Driver 1786528183",
+            "mobile": "9000000002",
+            "license_number": "PROBE-LIC1786528183",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          "tarpaulin_qty": null,
+          "freight_amount": "500.00",
+          "freight_paid": true,
+          "remarks": null
+        }
+      }
+    },
+    {
+      "name": "Dispatch list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/dispatches?date=2026-08-12",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "id": 2,
+            "dispatch_date": "2026-08-12",
+            "brick_type": {
+              "id": 7,
+              "name": "Probe Brick 1786528183",
+              "code": "PROBE1786528183",
+              "current_stock": 75,
+              "reorder_level": 10,
+              "is_active": true
+            },
+            "quantity_loaded": 25,
+            "party": {
+              "id": 5,
+              "name": "Probe Party 1786528183",
+              "mobile": "9000000003",
+              "address": "Probe party address",
+              "created_at": "2026-08-12T09:49:44.000000Z",
+              "updated_at": "2026-08-12T09:49:44.000000Z"
+            },
+            "vehicle": {
+              "id": 5,
+              "registration_number": "PROBE-1786528183",
+              "type": "Truck",
+              "is_active": true,
+              "created_at": "2026-08-12T09:49:44.000000Z",
+              "updated_at": "2026-08-12T09:49:44.000000Z"
+            },
+            "driver": {
+              "id": 5,
+              "name": "Probe Driver 1786528183",
+              "mobile": "9000000002",
+              "license_number": "PROBE-LIC1786528183",
+              "created_at": "2026-08-12T09:49:44.000000Z",
+              "updated_at": "2026-08-12T09:49:44.000000Z"
+            },
+            "tarpaulin_qty": 0,
+            "freight_amount": "500.00",
+            "freight_paid": true,
+            "remarks": null
+          },
+          {
+            "id": 1,
+            "dispatch_date": "2026-08-12",
+            "brick_type": {
+              "id": 5,
+              "name": "Probe Brick 1786528127",
+              "code": "PROBE1786528127",
+              "current_stock": 75,
+              "reorder_level": 10,
+              "is_active": true
+            },
+            "quantity_loaded": 25,
+            "party": {
+              "id": 3,
+              "name": "Probe Party 1786528127",
+              "mobile": "9000000003",
+              "address": "Probe party address",
+              "created_at": "2026-08-12T09:48:48.000000Z",
+              "updated_at": "2026-08-12T09:48:48.000000Z"
+            },
+            "vehicle": {
+              "id": 3,
+              "registration_number": "PROBE-1786528127",
+              "type": "Truck",
+              "is_active": true,
+              "created_at": "2026-08-12T09:48:48.000000Z",
+              "updated_at": "2026-08-12T09:48:48.000000Z"
+            },
+            "driver": {
+              "id": 3,
+              "name": "Probe Driver 1786528127",
+              "mobile": "9000000002",
+              "license_number": "PROBE-LIC1786528127",
+              "created_at": "2026-08-12T09:48:48.000000Z",
+              "updated_at": "2026-08-12T09:48:48.000000Z"
+            },
+            "tarpaulin_qty": 0,
+            "freight_amount": "500.00",
+            "freight_paid": true,
+            "remarks": null
+          }
+        ],
+        "links": {
+          "first": "http://127.0.0.1:8000/api/dispatches?page=1",
+          "last": "http://127.0.0.1:8000/api/dispatches?page=1",
+          "prev": null,
+          "next": null
+        },
+        "meta": {
+          "current_page": 1,
+          "from": 1,
+          "last_page": 1,
+          "links": [
+            {
+              "url": null,
+              "label": "&laquo; Previous",
+              "page": null,
+              "active": false
+            },
+            {
+              "url": "http://127.0.0.1:8000/api/dispatches?page=1",
+              "label": "1",
+              "page": 1,
+              "active": true
+            },
+            {
+              "url": null,
+              "label": "Next &raquo;",
+              "page": null,
+              "active": false
+            }
+          ],
+          "path": "http://127.0.0.1:8000/api/dispatches",
+          "per_page": 25,
+          "to": 2,
+          "total": 2
+        }
+      }
+    },
+    {
+      "name": "Dispatch show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/dispatches/2",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": {
+          "id": 2,
+          "dispatch_date": "2026-08-12",
+          "brick_type": {
+            "id": 7,
+            "name": "Probe Brick 1786528183",
+            "code": "PROBE1786528183",
+            "current_stock": 75,
+            "reorder_level": 10,
+            "is_active": true
+          },
+          "quantity_loaded": 25,
+          "party": {
+            "id": 5,
+            "name": "Probe Party 1786528183",
+            "mobile": "9000000003",
+            "address": "Probe party address",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          "vehicle": {
+            "id": 5,
+            "registration_number": "PROBE-1786528183",
+            "type": "Truck",
+            "is_active": true,
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          "driver": {
+            "id": 5,
+            "name": "Probe Driver 1786528183",
+            "mobile": "9000000002",
+            "license_number": "PROBE-LIC1786528183",
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          "tarpaulin_qty": 0,
+          "freight_amount": "500.00",
+          "freight_paid": true,
+          "remarks": null
+        }
+      }
+    },
+    {
+      "name": "Purchase create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/purchases",
+      "request": {
+        "purchase_date": "2026-08-12",
+        "supplier_id": 5,
+        "invoice_number": "PROBE-INV-1786528183",
+        "total_amount": 1000,
+        "remarks": "API curl probe"
+      },
+      "status": 201,
+      "response": {
+        "purchase_date": "2026-08-12T00:00:00.000000Z",
+        "supplier_id": 5,
+        "invoice_number": "PROBE-INV-1786528183",
+        "total_amount": "1000.00",
+        "remarks": "API curl probe",
+        "created_by": 1,
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 3
+      }
+    },
+    {
+      "name": "Purchase list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/purchases",
+      "request": null,
+      "status": 200,
+      "response": {
+        "current_page": 1,
+        "data": [
+          {
+            "id": 3,
+            "purchase_date": "2026-08-12T00:00:00.000000Z",
+            "supplier_id": 5,
+            "invoice_number": "PROBE-INV-1786528183",
+            "total_amount": "1000.00",
+            "remarks": "API curl probe",
+            "created_by": 1,
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          {
+            "id": 2,
+            "purchase_date": "2026-08-12T00:00:00.000000Z",
+            "supplier_id": 3,
+            "invoice_number": "PROBE-INV-1786528127",
+            "total_amount": "1000.00",
+            "remarks": "API curl probe",
+            "created_by": 1,
+            "created_at": "2026-08-12T09:48:48.000000Z",
+            "updated_at": "2026-08-12T09:48:48.000000Z"
+          },
+          {
+            "id": 1,
+            "purchase_date": "2026-08-12T00:00:00.000000Z",
+            "supplier_id": 1,
+            "invoice_number": "PROBE-INV-1786527997",
+            "total_amount": "1000.00",
+            "remarks": "API probe",
+            "created_by": 1,
+            "created_at": "2026-08-12T09:46:37.000000Z",
+            "updated_at": "2026-08-12T09:46:37.000000Z"
+          }
+        ],
+        "first_page_url": "http://127.0.0.1:8000/api/purchases?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://127.0.0.1:8000/api/purchases?page=1",
+        "links": [
+          {
+            "url": null,
+            "label": "&laquo; Previous",
+            "page": null,
+            "active": false
+          },
+          {
+            "url": "http://127.0.0.1:8000/api/purchases?page=1",
+            "label": "1",
+            "page": 1,
+            "active": true
+          },
+          {
+            "url": null,
+            "label": "Next &raquo;",
+            "page": null,
+            "active": false
+          }
+        ],
+        "next_page_url": null,
+        "path": "http://127.0.0.1:8000/api/purchases",
+        "per_page": 25,
+        "prev_page_url": null,
+        "to": 3,
+        "total": 3
+      }
+    },
+    {
+      "name": "Purchase show",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/purchases/3",
+      "request": null,
+      "status": 200,
+      "response": {
+        "id": 3,
+        "purchase_date": "2026-08-12T00:00:00.000000Z",
+        "supplier_id": 5,
+        "invoice_number": "PROBE-INV-1786528183",
+        "total_amount": "1000.00",
+        "remarks": "API curl probe",
+        "created_by": 1,
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "updated_at": "2026-08-12T09:49:44.000000Z"
+      }
+    },
+    {
+      "name": "Payment create",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/payments",
+      "request": {
+        "payment_date": "2026-08-12",
+        "amount": 1000,
+        "payment_method": "cash",
+        "remarks": "API curl probe"
+      },
+      "status": 201,
+      "response": {
+        "payment_date": "2026-08-12T00:00:00.000000Z",
+        "amount": "1000.00",
+        "payment_method": "cash",
+        "remarks": "API curl probe",
+        "created_by": 1,
+        "updated_at": "2026-08-12T09:49:44.000000Z",
+        "created_at": "2026-08-12T09:49:44.000000Z",
+        "id": 5
+      }
+    },
+    {
+      "name": "Payment list",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/payments",
+      "request": null,
+      "status": 200,
+      "response": {
+        "current_page": 1,
+        "data": [
+          {
+            "id": 5,
+            "payment_date": "2026-08-12T00:00:00.000000Z",
+            "payable_type": null,
+            "payable_id": null,
+            "amount": "1000.00",
+            "payment_method": "cash",
+            "remarks": "API curl probe",
+            "created_by": 1,
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          {
+            "id": 4,
+            "payment_date": "2026-08-12T00:00:00.000000Z",
+            "payable_type": "App\\Models\\Dispatch",
+            "payable_id": 2,
+            "amount": "500.00",
+            "payment_method": "cash",
+            "remarks": null,
+            "created_by": 1,
+            "created_at": "2026-08-12T09:49:44.000000Z",
+            "updated_at": "2026-08-12T09:49:44.000000Z"
+          },
+          {
+            "id": 3,
+            "payment_date": "2026-08-12T00:00:00.000000Z",
+            "payable_type": null,
+            "payable_id": null,
+            "amount": "1000.00",
+            "payment_method": "cash",
+            "remarks": "API curl probe",
+            "created_by": 1,
+            "created_at": "2026-08-12T09:48:49.000000Z",
+            "updated_at": "2026-08-12T09:48:49.000000Z"
+          },
+          {
+            "id": 2,
+            "payment_date": "2026-08-12T00:00:00.000000Z",
+            "payable_type": "App\\Models\\Dispatch",
+            "payable_id": 1,
+            "amount": "500.00",
+            "payment_method": "cash",
+            "remarks": null,
+            "created_by": 1,
+            "created_at": "2026-08-12T09:48:48.000000Z",
+            "updated_at": "2026-08-12T09:48:48.000000Z"
+          },
+          {
+            "id": 1,
+            "payment_date": "2026-08-12T00:00:00.000000Z",
+            "payable_type": null,
+            "payable_id": null,
+            "amount": "1000.00",
+            "payment_method": "cash",
+            "remarks": "API probe",
+            "created_by": 1,
+            "created_at": "2026-08-12T09:46:37.000000Z",
+            "updated_at": "2026-08-12T09:46:37.000000Z"
+          }
+        ],
+        "first_page_url": "http://127.0.0.1:8000/api/payments?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://127.0.0.1:8000/api/payments?page=1",
+        "links": [
+          {
+            "url": null,
+            "label": "&laquo; Previous",
+            "page": null,
+            "active": false
+          },
+          {
+            "url": "http://127.0.0.1:8000/api/payments?page=1",
+            "label": "1",
+            "page": 1,
+            "active": true
+          },
+          {
+            "url": null,
+            "label": "Next &raquo;",
+            "page": null,
+            "active": false
+          }
+        ],
+        "next_page_url": null,
+        "path": "http://127.0.0.1:8000/api/payments",
+        "per_page": 25,
+        "prev_page_url": null,
+        "to": 5,
+        "total": 5
+      }
+    },
+    {
+      "name": "Low-stock raw materials",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/raw-materials/low-stock",
+      "request": null,
+      "status": 200,
+      "response": {
+        "data": []
+      }
+    },
+    {
+      "name": "Stock ledger report",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/reports/stock-ledger?from=2026-08-01&to=2026-08-12",
+      "request": null,
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "Production report",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/reports/production?from=2026-08-01&to=2026-08-12",
+      "request": null,
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "Dispatch report",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/reports/dispatch?from=2026-08-01&to=2026-08-12",
+      "request": null,
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "Raw-material usage report",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/reports/raw-material-usage?from=2026-08-01&to=2026-08-12",
+      "request": null,
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "Logout",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/logout",
+      "request": null,
+      "status": 200,
+      "response": {
+        "message": "Logged out successfully."
+      }
+    }
+  ]
+}
