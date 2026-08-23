@@ -34,10 +34,12 @@ Future<void> main() async {
     }
   }
 
+  final apiClient = await buildTrustedDesktopApiClient();
+
   runApp(
     ProviderScope(
       overrides: [
-        apiClientProvider.overrideWithValue(buildDesktopApiClient()),
+        apiClientProvider.overrideWithValue(apiClient),
       ],
       child: const DeskApp(),
     ),
