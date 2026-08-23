@@ -35,9 +35,9 @@ class ApiClient {
   static Dio _buildDio(String baseUrl) => Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
+      sendTimeout: const Duration(seconds: 20),
       validateStatus: (status) =>
           status != null && status >= 200 && status < 300,
     ),
@@ -417,14 +417,18 @@ String apiErrorMessage(Object error) {
       }
       return 'API request failed ($statusCode).';
     }
+    final underlying = error.error?.toString();
+    final detail = underlying != null && underlying.isNotEmpty && underlying != 'null'
+        ? ' ($underlying)'
+        : '';
     return switch (error.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
       DioExceptionType.receiveTimeout =>
-        'The server took too long to respond. Check that the API is running and try again.',
+        'The server took too long to respond. Check that the API is running and try again.$detail',
       DioExceptionType.connectionError =>
-        'Cannot reach the API. Check the server address and your network connection.',
-      _ => 'The API request failed. Please try again.',
+        'Cannot reach the API. Check your internet connection or allow the app through Windows Firewall/Defender.$detail',
+      _ => 'The API request failed. Please try again.$detail',
     };
   }
   return 'The API request failed. Please try again.';
