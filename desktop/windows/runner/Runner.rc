@@ -38,7 +38,7 @@ END
 
 3 TEXTINCLUDE
 BEGIN
-    "\r\n"
+    "#include ""manifest.xml""\r\n"
     "\0"
 END
 
