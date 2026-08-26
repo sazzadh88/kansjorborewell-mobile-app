@@ -335,6 +335,8 @@ class DispatchRecord {
     required this.party,
     required this.vehicle,
     required this.quantity,
+    this.designId,
+    this.design,
     this.driver,
     this.freightAmount,
     this.paymentStatus = 'due',
@@ -354,6 +356,8 @@ class DispatchRecord {
   final String party;
   final String vehicle;
   final int quantity;
+  final int? designId;
+  final String? design;
   final String? driver;
   final double? freightAmount;
   final String paymentStatus;
@@ -382,6 +386,10 @@ class DispatchRecord {
         (json['vehicle'] as Map?)?['registration_number']?.toString() ??
         'Vehicle',
     quantity: _parseInt(json['quantity_loaded']),
+    designId: json['design'] != null
+        ? _parseInt((json['design'] as Map?)?['id'])
+        : null,
+    design: (json['design'] as Map?)?['name']?.toString(),
     driver: (json['driver'] as Map?)?['name']?.toString(),
     freightAmount: json['freight_amount'] != null
         ? _parseDouble(json['freight_amount'])

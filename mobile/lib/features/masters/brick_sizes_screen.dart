@@ -65,18 +65,14 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
       if (_editingId == null) {
         await ref.read(apiClientProvider).createBrickSize(payload);
       } else {
-        await ref
-            .read(apiClientProvider)
-            .updateBrickSize(_editingId!, payload);
+        await ref.read(apiClientProvider).updateBrickSize(_editingId!, payload);
       }
       _resetForm();
       ref.invalidate(brickSizesProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              _editingId == null ? 'Size added.' : 'Size updated.',
-            ),
+            content: Text(_editingId == null ? 'Size added.' : 'Size updated.'),
           ),
         );
       }
@@ -96,7 +92,9 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('Delete ${item['name']}?'),
-        content: const Text('This size will no longer be selectable for products or designs.'),
+        content: const Text(
+          'This size will no longer be selectable for products or designs.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -111,14 +109,12 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(apiClientProvider)
-          .deleteBrickSize(item['id'] as int);
+      await ref.read(apiClientProvider).deleteBrickSize(item['id'] as int);
       ref.invalidate(brickSizesProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${item['name']} deleted.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${item['name']} deleted.')));
       }
     } catch (error) {
       if (mounted) {
@@ -145,8 +141,11 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
           children: [
             if (_canWrite) ...[
               FormSection(
-                title: _editingId == null ? 'Add size / thickness' : 'Edit size / thickness',
-                subtitle: 'These sizes are available in product and design pickers.',
+                title: _editingId == null
+                    ? 'Add size / thickness'
+                    : 'Edit size / thickness',
+                subtitle:
+                    'These sizes are available in product and design pickers.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -169,7 +168,9 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
                     ),
                     const SizedBox(height: 8),
                     SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                      ),
                       title: const Text(
                         'Active',
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -215,7 +216,8 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
                 if (items.isEmpty) {
                   return const EmptyState(
                     title: 'No sizes yet',
-                    message: 'Add a size above to make it available in pickers.',
+                    message:
+                        'Add a size above to make it available in pickers.',
                   );
                 }
                 return Column(
@@ -233,7 +235,9 @@ class _BrickSizesScreenState extends ConsumerState<BrickSizesScreen> {
                                 children: [
                                   Text(
                                     item['name']?.toString() ?? '',
-                                    style: const TextStyle(fontWeight: FontWeight.w800),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(

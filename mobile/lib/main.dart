@@ -9,9 +9,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
     ProviderScope(
-      overrides: [
-        apiClientProvider.overrideWithValue(buildMobileApiClient()),
-      ],
+      overrides: [apiClientProvider.overrideWithValue(buildMobileApiClient())],
       child: const KansjorBorewellApp(),
     ),
   );

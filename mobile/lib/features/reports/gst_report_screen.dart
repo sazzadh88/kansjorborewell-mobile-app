@@ -48,7 +48,9 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
   Future<void> _exportGstCsv() async {
     if (_range == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a date range first, then export.')),
+        const SnackBar(
+          content: Text('Select a date range first, then export.'),
+        ),
       );
       await _pickRange();
       if (_range == null || !mounted) return;
@@ -58,7 +60,9 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
     final fileName = 'gst-report-$from-$to.csv';
     setState(() => _exporting = true);
     try {
-      final csv = await ref.read(apiClientProvider).exportGstCsv(from: from, to: to);
+      final csv = await ref
+          .read(apiClientProvider)
+          .exportGstCsv(from: from, to: to);
       await ref.read(apiClientProvider).saveCsvToDownloads(fileName, csv);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -67,9 +71,9 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(apiErrorMessage(error))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(apiErrorMessage(error))));
       }
     } finally {
       if (mounted) setState(() => _exporting = false);
@@ -153,7 +157,8 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
                     const AppCard(
                       child: EmptyState(
                         title: 'No dispatches',
-                        message: 'Dispatch transactions in the selected range will appear here.',
+                        message:
+                            'Dispatch transactions in the selected range will appear here.',
                       ),
                     )
                   else
@@ -169,7 +174,9 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
                                   Expanded(
                                     child: Text(
                                       row.party,
-                                      style: const TextStyle(fontWeight: FontWeight.w800),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ),
                                   Text(
@@ -183,9 +190,16 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
                               ),
                               const SizedBox(height: 12),
                               _row('Taxable', '₹ ${_money(row.taxableAmount)}'),
-                              _row('GST (${row.gstRate.toStringAsFixed(0)}%)', '₹ ${_money(row.gstAmount)}'),
+                              _row(
+                                'GST (${row.gstRate.toStringAsFixed(0)}%)',
+                                '₹ ${_money(row.gstAmount)}',
+                              ),
                               const Divider(height: 20),
-                              _row('Total', '₹ ${_money(row.totalAmount)}', bold: true),
+                              _row(
+                                'Total',
+                                '₹ ${_money(row.totalAmount)}',
+                                bold: true,
+                              ),
                             ],
                           ),
                         ),
@@ -205,7 +219,10 @@ class _GstReportScreenState extends ConsumerState<GstReportScreen> {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.muted, fontSize: 13),
+        ),
         Text(
           value,
           style: TextStyle(
@@ -250,7 +267,13 @@ class _TotalCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Taxable', style: TextStyle(color: Colors.white70)),
-            Text('₹ ${taxable.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+            Text(
+              '₹ ${taxable.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -258,7 +281,13 @@ class _TotalCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('GST', style: TextStyle(color: Colors.white70)),
-            Text('₹ ${gst.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+            Text(
+              '₹ ${gst.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -266,8 +295,21 @@ class _TotalCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Total', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-            Text('₹ ${total.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+            const Text(
+              'Total',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              '₹ ${total.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+              ),
+            ),
           ],
         ),
       ],

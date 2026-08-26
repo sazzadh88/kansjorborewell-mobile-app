@@ -191,8 +191,12 @@ class _ProductionListState extends ConsumerState<ProductionScreen> {
           if (_canEdit || _canDelete)
             PopupMenuButton<String>(
               onSelected: (value) {
-                if (value == 'edit') context.push('/production/new', extra: item);
-                if (value == 'delete') _delete(item);
+                if (value == 'edit') {
+                  context.push('/production/new', extra: item);
+                }
+                if (value == 'delete') {
+                  _delete(item);
+                }
               },
               itemBuilder: (_) => [
                 if (_canEdit)
