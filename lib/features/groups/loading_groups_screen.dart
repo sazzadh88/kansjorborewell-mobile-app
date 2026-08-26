@@ -167,9 +167,9 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
                   if (dialogCtx.mounted) Navigator.pop(dialogCtx, true);
                 } catch (e) {
                   if (ctx.mounted) {
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text(apiErrorMessage(e))),
-                    );
+                    ScaffoldMessenger.of(
+                      ctx,
+                    ).showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
                   }
                 }
               },
@@ -229,9 +229,9 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(apiErrorMessage(e))),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
         }
       }
     }

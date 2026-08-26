@@ -55,7 +55,9 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty || _size == null || _size!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a design name and choose a thickness.')),
+        const SnackBar(
+          content: Text('Enter a design name and choose a thickness.'),
+        ),
       );
       return;
     }
@@ -75,9 +77,7 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
       if (_editingId == null) {
         await ref.read(apiClientProvider).createDesign(payload);
       } else {
-        await ref
-            .read(apiClientProvider)
-            .updateDesign(_editingId!, payload);
+        await ref.read(apiClientProvider).updateDesign(_editingId!, payload);
       }
       _resetForm();
       ref.invalidate(designsProvider);
@@ -106,7 +106,9 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('Delete ${item.name}?'),
-        content: const Text('Designs used in production entries cannot be deleted.'),
+        content: const Text(
+          'Designs used in production entries cannot be deleted.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -124,9 +126,9 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
       await ref.read(apiClientProvider).deleteDesign(item.id);
       ref.invalidate(designsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${item.name} deleted.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${item.name} deleted.')));
       }
     } catch (error) {
       if (mounted) {
@@ -153,8 +155,11 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
           children: [
             if (_canWrite) ...[
               FormSection(
-                title: _editingId == null ? 'Add design pattern' : 'Edit design pattern',
-                subtitle: 'These patterns appear in the production entry design picker.',
+                title: _editingId == null
+                    ? 'Add design pattern'
+                    : 'Edit design pattern',
+                subtitle:
+                    'These patterns appear in the production entry design picker.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -167,25 +172,28 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ref.watch(brickSizesProvider).when(
-                      loading: () => const SizedBox(height: 20),
-                      error: (_, __) => const SizedBox.shrink(),
-                      data: (sizes) => DropdownButtonFormField<String>(
-                        initialValue: _size,
-                        decoration: const InputDecoration(
-                          labelText: 'Thickness / Size',
-                          prefixIcon: Icon(Icons.straighten_outlined),
+                    ref
+                        .watch(brickSizesProvider)
+                        .when(
+                          loading: () => const SizedBox(height: 20),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (sizes) => DropdownButtonFormField<String>(
+                            initialValue: _size,
+                            decoration: const InputDecoration(
+                              labelText: 'Thickness / Size',
+                              prefixIcon: Icon(Icons.straighten_outlined),
+                            ),
+                            items: sizes
+                                .map(
+                                  (s) => DropdownMenuItem<String>(
+                                    value: s['name']?.toString() ?? '',
+                                    child: Text(s['name']?.toString() ?? ''),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) => setState(() => _size = value),
+                          ),
                         ),
-                        items: sizes
-                            .map((s) => DropdownMenuItem<String>(
-                                  value: s['name']?.toString() ?? '',
-                                  child: Text(s['name']?.toString() ?? ''),
-                                ))
-                            .toList(),
-                        onChanged: (value) =>
-                            setState(() => _size = value),
-                      ),
-                    ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _colorsController,
@@ -197,7 +205,9 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
                     ),
                     const SizedBox(height: 8),
                     SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                      ),
                       title: const Text(
                         'Active',
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -243,7 +253,8 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
                 if (items.isEmpty) {
                   return const EmptyState(
                     title: 'No designs yet',
-                    message: 'Add a design pattern above to use it in production.',
+                    message:
+                        'Add a design pattern above to use it in production.',
                   );
                 }
                 return Column(
@@ -260,7 +271,9 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
                                 children: [
                                   Text(
                                     item.name,
-                                    style: const TextStyle(fontWeight: FontWeight.w800),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -283,7 +296,8 @@ class _DesignPatternsScreenState extends ConsumerState<DesignPatternsScreen> {
                                             ),
                                             decoration: BoxDecoration(
                                               color: AppColors.accentTint,
-                                              borderRadius: BorderRadius.circular(99),
+                                              borderRadius:
+                                                  BorderRadius.circular(99),
                                             ),
                                             child: Text(
                                               c,

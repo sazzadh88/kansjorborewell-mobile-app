@@ -28,7 +28,8 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
   int? _editingId;
 
   bool get _canWrite => switch (widget.resource) {
-    'machines' => ref.read(authProvider).value?.hasPermission('products.manage') ?? false,
+    'machines' =>
+      ref.read(authProvider).value?.hasPermission('products.manage') ?? false,
     _ => ref.read(authProvider).value?.hasPermission('masters.manage') ?? false,
   };
 
@@ -329,7 +330,12 @@ class _MasterManagementState extends ConsumerState<MasterManagementScreen> {
                     ? rows
                     : rows.map((r) {
                         if (r is MachineModel) {
-                          return {'id': r.id, 'name': r.name, 'code': r.code, 'is_active': r.isActive};
+                          return {
+                            'id': r.id,
+                            'name': r.name,
+                            'code': r.code,
+                            'is_active': r.isActive,
+                          };
                         }
                         return r as Map<String, dynamic>;
                       }).toList();

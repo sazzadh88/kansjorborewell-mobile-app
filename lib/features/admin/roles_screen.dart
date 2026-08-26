@@ -27,9 +27,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a role name.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a role name.')));
       return;
     }
     setState(() => _saving = true);
@@ -39,13 +39,20 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
         await api.createRole(name, _draftPermissions.toList());
       } else {
         await api.updateRole(_editingRoleId!, name);
-        await api.syncRolePermissions(_editingRoleId!, _draftPermissions.toList());
+        await api.syncRolePermissions(
+          _editingRoleId!,
+          _draftPermissions.toList(),
+        );
       }
       _resetForm();
       ref.invalidate(manageRolesProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_editingRoleId == null ? 'Role created.' : 'Role updated.')),
+          SnackBar(
+            content: Text(
+              _editingRoleId == null ? 'Role created.' : 'Role updated.',
+            ),
+          ),
         );
       }
     } catch (error) {
@@ -80,7 +87,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('Delete ${role.name}?'),
-        content: const Text('This role cannot be deleted while staff are assigned to it.'),
+        content: const Text(
+          'This role cannot be deleted while staff are assigned to it.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -174,7 +183,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                     data: (items) {
                       final groups = <String, List<PermissionModel>>{};
                       for (final permission in items) {
-                        groups.putIfAbsent(permission.group, () => []).add(permission);
+                        groups
+                            .putIfAbsent(permission.group, () => [])
+                            .add(permission);
                       }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +200,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                                     ?.copyWith(color: AppColors.accent),
                               ),
                             ),
-                            ...entry.value.map((p) => _permissionTile(items, p)),
+                            ...entry.value.map(
+                              (p) => _permissionTile(items, p),
+                            ),
                           ],
                         ],
                       );
@@ -249,7 +262,9 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                                 children: [
                                   Text(
                                     role.name.toUpperCase(),
-                                    style: const TextStyle(fontWeight: FontWeight.w800),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(

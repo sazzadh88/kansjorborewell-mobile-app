@@ -189,7 +189,8 @@ class DashboardScreen extends ConsumerWidget {
                                   icon: Icons.precision_manufacturing_outlined,
                                 ),
                               ),
-                            if (user?.hasPermission('production.view') == true &&
+                            if (user?.hasPermission('production.view') ==
+                                    true &&
                                 user?.hasPermission('dispatch.view') == true)
                               const SizedBox(width: 12),
                             if (user?.hasPermission('dispatch.view') == true)
@@ -228,134 +229,141 @@ class DashboardScreen extends ConsumerWidget {
                         )
                       else
                         ...data.brickTypes.map((brick) {
-                        final low = brick.currentStock <= brick.reorderLevel;
-                        final target = brick.reorderLevel > 0
-                            ? brick.reorderLevel * 4
-                            : 100;
-                        final rawRatio = target <= 0
-                            ? 1.0
-                            : (brick.currentStock / target);
-                        final ratio = rawRatio.isNaN || rawRatio.isInfinite
-                            ? 0.05
-                            : rawRatio.clamp(0.05, 1.0);
+                          final low = brick.currentStock <= brick.reorderLevel;
+                          final target = brick.reorderLevel > 0
+                              ? brick.reorderLevel * 4
+                              : 100;
+                          final rawRatio = target <= 0
+                              ? 1.0
+                              : (brick.currentStock / target);
+                          final ratio = rawRatio.isNaN || rawRatio.isInfinite
+                              ? 0.05
+                              : rawRatio.clamp(0.05, 1.0);
 
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: AppCard(
-                            padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: low
-                                            ? AppColors.warningTint
-                                            : AppColors.accentTint,
-                                        borderRadius: BorderRadius.circular(11),
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: AppCard(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                15,
+                                16,
+                                14,
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: low
+                                              ? AppColors.warningTint
+                                              : AppColors.accentTint,
+                                          borderRadius: BorderRadius.circular(
+                                            11,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          low
+                                              ? Icons.warning_amber_rounded
+                                              : Icons.inventory_2_outlined,
+                                          color: low
+                                              ? AppColors.warning
+                                              : AppColors.accentDark,
+                                          size: 20,
+                                        ),
                                       ),
-                                      child: Icon(
-                                        low
-                                            ? Icons.warning_amber_rounded
-                                            : Icons.inventory_2_outlined,
-                                        color: low
-                                            ? AppColors.warning
-                                            : AppColors.accentDark,
-                                        size: 20,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              brick.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              brick.code,
+                                              style: const TextStyle(
+                                                color: AppColors.muted,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
+                                      Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            brick.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w800,
-                                            ),
+                                            '${brick.currentStock}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontFeatures: const [
+                                                    FontFeature.tabularFigures(),
+                                                  ],
+                                                ),
                                           ),
-                                          const SizedBox(height: 3),
                                           Text(
-                                            brick.code,
-                                            style: const TextStyle(
-                                              color: AppColors.muted,
-                                              fontSize: 12,
-                                            ),
+                                            'pieces',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium
+                                                ?.copyWith(
+                                                  color: AppColors.muted,
+                                                ),
                                           ),
                                         ],
                                       ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(99),
+                                    child: LinearProgressIndicator(
+                                      value: ratio,
+                                      minHeight: 7,
+                                      backgroundColor: AppColors.canvas,
+                                      color: low
+                                          ? AppColors.warning
+                                          : AppColors.accent,
                                     ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
+                                  ),
+                                  if (low) ...[
+                                    const SizedBox(height: 8),
+                                    Row(
                                       children: [
-                                        Text(
-                                          '${brick.currentStock}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w900,
-                                                fontFeatures: const [
-                                                  FontFeature.tabularFigures(),
-                                                ],
-                                              ),
+                                        const Icon(
+                                          Icons.info_outline,
+                                          size: 14,
+                                          color: AppColors.warning,
                                         ),
+                                        const SizedBox(width: 5),
                                         Text(
-                                          'pieces',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium
-                                              ?.copyWith(
-                                                color: AppColors.muted,
-                                              ),
+                                          'Below reorder level of ${brick.reorderLevel}',
+                                          style: const TextStyle(
+                                            color: AppColors.warning,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ],
-                                ),
-                                const SizedBox(height: 14),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(99),
-                                  child: LinearProgressIndicator(
-                                    value: ratio,
-                                    minHeight: 7,
-                                    backgroundColor: AppColors.canvas,
-                                    color: low
-                                        ? AppColors.warning
-                                        : AppColors.accent,
-                                  ),
-                                ),
-                                if (low) ...[
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.info_outline,
-                                        size: 14,
-                                        color: AppColors.warning,
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        'Below reorder level of ${brick.reorderLevel}',
-                                        style: const TextStyle(
-                                          color: AppColors.warning,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
                     ],
                   ],
                 ),

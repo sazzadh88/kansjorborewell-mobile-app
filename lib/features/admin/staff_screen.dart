@@ -55,22 +55,24 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
     final mobile = _mobile.text.trim();
     if (name.isEmpty || mobile.isEmpty || _roleId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Complete staff name, mobile, and role.'),
-        ),
+        const SnackBar(content: Text('Complete staff name, mobile, and role.')),
       );
       return;
     }
     final password = _password.text.trim();
     if (!_editing && password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters.')),
+        const SnackBar(
+          content: Text('Password must be at least 6 characters.'),
+        ),
       );
       return;
     }
     if (_editing && password.isNotEmpty && password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters.')),
+        const SnackBar(
+          content: Text('Password must be at least 6 characters.'),
+        ),
       );
       return;
     }
@@ -93,7 +95,9 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_editing ? 'Staff account updated.' : 'Staff account created.'),
+            content: Text(
+              _editing ? 'Staff account updated.' : 'Staff account created.',
+            ),
           ),
         );
       }
@@ -129,14 +133,12 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(apiClientProvider)
-          .deleteStaff(person['id'] as int);
+      await ref.read(apiClientProvider).deleteStaff(person['id'] as int);
       ref.invalidate(staffProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$name deleted.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$name deleted.')));
       }
     } catch (error) {
       if (mounted) {
@@ -162,7 +164,9 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
             CircleAvatar(
               backgroundColor: AppColors.accentTint,
               child: Text(
-                (person['name'] as String? ?? 'U').substring(0, 1).toUpperCase(),
+                (person['name'] as String? ?? 'U')
+                    .substring(0, 1)
+                    .toUpperCase(),
                 style: const TextStyle(
                   color: AppColors.accentDark,
                   fontWeight: FontWeight.w800,
@@ -198,7 +202,10 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
                   const SizedBox(height: 3),
                   Text(
                     person['mobile'] as String? ?? '',
-                    style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -318,7 +325,9 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
                       child: FilledButton.icon(
                         onPressed: _saving ? null : _save,
                         icon: Icon(
-                          _editing ? Icons.save_outlined : Icons.person_add_alt_1,
+                          _editing
+                              ? Icons.save_outlined
+                              : Icons.person_add_alt_1,
                         ),
                         label: Text(
                           _saving

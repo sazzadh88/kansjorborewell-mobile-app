@@ -83,9 +83,13 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
       _resetForm();
       ref.invalidate(brickTypesProvider);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(_editingId == null ? 'Brick type added.' : 'Brick type updated.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _editingId == null ? 'Brick type added.' : 'Brick type updated.',
+            ),
+          ),
+        );
       }
     } catch (error) {
       if (mounted) {
@@ -103,7 +107,9 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('Delete ${item.name}?'),
-        content: const Text('This brick type cannot be deleted if it is used in production or dispatch.'),
+        content: const Text(
+          'This brick type cannot be deleted if it is used in production or dispatch.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -121,9 +127,9 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
       await ref.read(apiClientProvider).deleteMaster('brick-types', item.id);
       ref.invalidate(brickTypesProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${item.name} deleted.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${item.name} deleted.')));
       }
     } catch (error) {
       if (mounted) {
@@ -150,7 +156,9 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
           children: [
             if (_canWrite) ...[
               FormSection(
-                title: _editingId == null ? 'Add brick type' : 'Edit brick type',
+                title: _editingId == null
+                    ? 'Add brick type'
+                    : 'Edit brick type',
                 subtitle: _editingId == null
                     ? 'Create a brick type and mark it as paver if designs apply.'
                     : 'Update this brick type\'s name, code, reorder level, or type.',
@@ -182,31 +190,37 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ref.watch(brickSizesProvider).when(
-                      loading: () => const SizedBox(height: 20),
-                      error: (_, __) => const SizedBox.shrink(),
-                      data: (sizes) => DropdownButtonFormField<String?>(
-                        initialValue: _size,
-                        decoration: const InputDecoration(
-                          labelText: 'Size / Thickness (Optional)',
-                          prefixIcon: Icon(Icons.straighten_outlined),
-                        ),
-                        items: [
-                          const DropdownMenuItem<String?>(
-                            value: null,
-                            child: Text('None'),
+                    ref
+                        .watch(brickSizesProvider)
+                        .when(
+                          loading: () => const SizedBox(height: 20),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (sizes) => DropdownButtonFormField<String?>(
+                            initialValue: _size,
+                            decoration: const InputDecoration(
+                              labelText: 'Size / Thickness (Optional)',
+                              prefixIcon: Icon(Icons.straighten_outlined),
+                            ),
+                            items: [
+                              const DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('None'),
+                              ),
+                              ...sizes.map(
+                                (s) => DropdownMenuItem<String?>(
+                                  value: s['name']?.toString() ?? '',
+                                  child: Text(s['name']?.toString() ?? ''),
+                                ),
+                              ),
+                            ],
+                            onChanged: (value) => setState(() => _size = value),
                           ),
-                          ...sizes.map((s) => DropdownMenuItem<String?>(
-                                value: s['name']?.toString() ?? '',
-                                child: Text(s['name']?.toString() ?? ''),
-                              )),
-                        ],
-                        onChanged: (value) => setState(() => _size = value),
-                      ),
-                    ),
+                        ),
                     const SizedBox(height: 8),
                     SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                      ),
                       title: const Text(
                         'Paver block',
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -273,12 +287,17 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
                                 children: [
                                   Text(
                                     item.name,
-                                    style: const TextStyle(fontWeight: FontWeight.w800),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     '${item.code} · ${item.isPaver ? 'Paver' : 'Fly ash'} · stock ${item.currentStock}',
-                                    style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                                    style: const TextStyle(
+                                      color: AppColors.muted,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -292,7 +311,10 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
                               IconButton(
                                 tooltip: 'Delete',
                                 onPressed: () => _delete(item),
-                                icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: AppColors.danger,
+                                ),
                               ),
                             ],
                           ],

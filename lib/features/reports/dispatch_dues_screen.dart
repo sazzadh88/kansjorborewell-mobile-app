@@ -67,7 +67,8 @@ class DispatchDuesScreen extends ConsumerWidget {
                     const AppCard(
                       child: EmptyState(
                         title: 'No dues',
-                        message: 'Dispatch loads will appear here with their payment status.',
+                        message:
+                            'Dispatch loads will appear here with their payment status.',
                       ),
                     )
                   else
@@ -83,12 +84,17 @@ class DispatchDuesScreen extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       row.party,
-                                      style: const TextStyle(fontWeight: FontWeight.w800),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ),
                                   Text(
                                     '${row.dispatches} loads',
-                                    style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                                    style: const TextStyle(
+                                      color: AppColors.muted,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -116,24 +122,31 @@ class DispatchDuesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row(String label, String value, {bool bold = false, bool due = false}) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
-            Text(
-              value,
-              style: TextStyle(
-                color: due ? AppColors.warning : null,
-                fontWeight: bold ? FontWeight.w900 : FontWeight.w700,
-                fontSize: bold ? 16 : 14,
-              ),
-            ),
-          ],
+  Widget _row(
+    String label,
+    String value, {
+    bool bold = false,
+    bool due = false,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.muted, fontSize: 13),
         ),
-      );
+        Text(
+          value,
+          style: TextStyle(
+            color: due ? AppColors.warning : null,
+            fontWeight: bold ? FontWeight.w900 : FontWeight.w700,
+            fontSize: bold ? 16 : 14,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _TotalCard extends StatelessWidget {
@@ -161,8 +174,17 @@ class _TotalCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Total freight', style: TextStyle(color: Colors.white70)),
-            Text('₹ ${data.freightAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+            const Text(
+              'Total freight',
+              style: TextStyle(color: Colors.white70),
+            ),
+            Text(
+              '₹ ${data.freightAmount.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -170,7 +192,13 @@ class _TotalCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Paid', style: TextStyle(color: Colors.white70)),
-            Text('₹ ${data.paidAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+            Text(
+              '₹ ${data.paidAmount.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -178,8 +206,21 @@ class _TotalCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Final due', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-            Text('₹ ${data.dueAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.w900, fontSize: 18)),
+            const Text(
+              'Final due',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              '₹ ${data.dueAmount.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.amberAccent,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+              ),
+            ),
           ],
         ),
       ],

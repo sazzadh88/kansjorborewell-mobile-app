@@ -19,6 +19,7 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
   final _freightController = TextEditingController();
   final _paidController = TextEditingController();
   int? _brickTypeId;
+  int? _designId;
   int? _partyId;
   int? _vehicleId;
   int? _driverId;
@@ -34,12 +35,15 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
     super.initState();
     final entry = widget.entry;
     _brickTypeId = entry?.brickTypeId == 0 ? null : entry?.brickTypeId;
+    _designId = entry?.designId;
     _partyId = entry?.partyId == 0 ? null : entry?.partyId;
     _vehicleId = entry?.vehicleId == 0 ? null : entry?.vehicleId;
     _driverId = entry?.driverId;
     _quantityController.text = entry?.quantity.toString() ?? '';
     _freightController.text = entry?.freightAmount?.toString() ?? '';
-    _paidController.text = entry?.paidAmount == 0 ? '' : entry?.paidAmount.toString() ?? '';
+    _paidController.text = entry?.paidAmount == 0
+        ? ''
+        : entry?.paidAmount.toString() ?? '';
     _paymentStatus = entry?.paymentStatus ?? 'due';
     _paymentMode = entry?.paymentMode;
   }
@@ -55,11 +59,13 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
   Future<void> _refreshMasters() async {
     setState(() => _refreshing = true);
     ref.invalidate(brickTypesProvider);
+    ref.invalidate(designsProvider);
     ref.invalidate(partiesProvider);
     ref.invalidate(vehiclesProvider);
     ref.invalidate(driversProvider);
     await Future.wait([
       ref.read(brickTypesProvider.future),
+      ref.read(designsProvider.future),
       ref.read(partiesProvider.future),
       ref.read(vehiclesProvider.future),
       ref.read(driversProvider.future),
@@ -99,6 +105,7 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
           widget.entry?.date ??
           DateTime.now().toIso8601String().substring(0, 10),
       'brick_type_id': _brickTypeId,
+      'design_id': _designId,
       'quantity_loaded': quantity,
       'party_id': _partyId,
       'vehicle_id': _vehicleId,
@@ -160,9 +167,14 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
   @override
   Widget build(BuildContext context) {
     final bricks = ref.watch(brickTypesProvider);
+    final designs = ref.watch(designsProvider);
     final parties = ref.watch(partiesProvider);
     final vehicles = ref.watch(vehiclesProvider);
     final drivers = ref.watch(driversProvider);
+    final selectedBrick = bricks.asData?.value
+        .where((item) => item.id == _brickTypeId)
+        .firstOrNull;
+    final showDesign = selectedBrick?.isPaver ?? false;
     return FactoryShell(
       currentIndex: 2,
       title: editing ? 'Edit load' : 'Create load',
@@ -224,10 +236,47 @@ class _DispatchFormState extends ConsumerState<DispatchFormScreen> {
                             ),
                           )
                           .toList(),
-                      onChanged: (value) =>
-                          setState(() => _brickTypeId = value),
+                      onChanged: (value) => setState(() {
+                        _brickTypeId = value;
+                        _designId = null;
+                      }),
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  if (showDesign)
+                    designs.when(
+                      loading: () => const MasterPickerLoading(
+                        label: 'designs',
+                        icon: Icons.design_services_outlined,
+                      ),
+                      error: (error, _) => ErrorState(
+                        message: 'Designs are unavailable.',
+                        onRetry: () => ref.invalidate(designsProvider),
+                      ),
+                      data: (items) => DropdownButtonFormField<int?>(
+                        initialValue: _designId,
+                        decoration: const InputDecoration(
+                          labelText: 'Design',
+                          helperText: 'Applicable to paver blocks only',
+                          prefixIcon: Icon(Icons.design_services_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('None'),
+                          ),
+                          ...items.map(
+                            (item) => DropdownMenuItem<int?>(
+                              value: item.id,
+                              child: Text('${item.name} · ${item.size}'),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) => setState(() => _designId = value),
+                      ),
+                    )
+                  else
+                    const SizedBox.shrink(),
                   const SizedBox(height: 14),
                   parties.when(
                     loading: () => const MasterPickerLoading(
