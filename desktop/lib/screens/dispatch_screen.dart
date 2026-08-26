@@ -29,10 +29,10 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
   String _date(DateTime value) => value.toIso8601String().substring(0, 10);
 
   ({String? from, String? to, int page}) get query => (
-        from: _range == null ? null : _date(_range!.start),
-        to: _range == null ? null : _date(_range!.end),
-        page: _page,
-      );
+    from: _range == null ? null : _date(_range!.start),
+    to: _range == null ? null : _date(_range!.end),
+    page: _page,
+  );
 
   Future<void> _pickRange() async {
     final picked = await showDateRangePicker(
@@ -80,20 +80,22 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(apiErrorMessage(error))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(apiErrorMessage(error))));
       }
     }
   }
 
   Future<void> _openEntryDialog([DispatchRecord? record]) async {
     ref.invalidate(brickTypesProvider);
+    ref.invalidate(designsProvider);
     ref.invalidate(partiesProvider);
     ref.invalidate(vehiclesProvider);
     ref.invalidate(driversProvider);
 
     final bricks = await ref.read(brickTypesProvider.future);
+    final designs = await ref.read(designsProvider.future);
     final parties = await ref.read(partiesProvider.future);
     final vehicles = await ref.read(vehiclesProvider.future);
     final drivers = await ref.read(driversProvider.future);
@@ -118,11 +120,17 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
     }
 
     int? brickTypeId = record?.brickTypeId ?? bricks.firstOrNull?.id;
-    int? partyId = record?.partyId ?? (parties.firstOrNull?['id'] as num?)?.toInt();
-    int? vehicleId = record?.vehicleId ?? (vehicles.firstOrNull?['id'] as num?)?.toInt();
-    int? driverId = record?.driverId ?? (drivers.firstOrNull?['id'] as num?)?.toInt();
+    int? designId = record?.designId;
+    int? partyId =
+        record?.partyId ?? (parties.firstOrNull?['id'] as num?)?.toInt();
+    int? vehicleId =
+        record?.vehicleId ?? (vehicles.firstOrNull?['id'] as num?)?.toInt();
+    int? driverId =
+        record?.driverId ?? (drivers.firstOrNull?['id'] as num?)?.toInt();
 
-    final qtyCtrl = TextEditingController(text: record != null ? '${record.quantity}' : '');
+    final qtyCtrl = TextEditingController(
+      text: record != null ? '${record.quantity}' : '',
+    );
     final freightCtrl = TextEditingController(
       text: record?.freightAmount != null ? '${record!.freightAmount}' : '',
     );
@@ -132,12 +140,19 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
     String paymentStatus = record?.paymentStatus ?? 'due';
     String? paymentMode = record?.paymentMode ?? 'cash';
     final remarksCtrl = TextEditingController(text: record?.remarks ?? '');
-    DateTime date = record != null ? DateTime.parse(record.date) : DateTime.now();
+    DateTime date = record != null
+        ? DateTime.parse(record.date)
+        : DateTime.now();
 
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
+          final selectedBrick = bricks
+              .where((b) => b.id == brickTypeId)
+              .firstOrNull;
+          final isPaver = selectedBrick?.isPaver ?? false;
+
           return AlertDialog(
             title: Text(record == null ? 'New Dispatch' : 'Edit Dispatch'),
             content: SizedBox(
@@ -168,16 +183,59 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                       value: brickTypeId,
                       decoration: const InputDecoration(labelText: 'Product'),
                       items: bricks
-                          .map((b) => DropdownMenuItem(value: b.id, child: Text(b.name)))
+                          .map(
+                            (b) => DropdownMenuItem(
+                              value: b.id,
+                              child: Text(b.name),
+                            ),
+                          )
                           .toList(),
-                      onChanged: (val) => setDialogState(() => brickTypeId = val),
+                      onChanged: (val) {
+                        setDialogState(() {
+                          brickTypeId = val;
+                          final b = bricks
+                              .where((item) => item.id == val)
+                              .firstOrNull;
+                          if (b == null || !b.isPaver) designId = null;
+                        });
+                      },
                     ),
+                    if (isPaver) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        value: designId,
+                        decoration: const InputDecoration(
+                          labelText: 'Design (Paver)',
+                        ),
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('None / Default'),
+                          ),
+                          ...designs.map(
+                            (d) => DropdownMenuItem(
+                              value: d.id,
+                              child: Text(d.label),
+                            ),
+                          ),
+                        ],
+                        onChanged: (val) =>
+                            setDialogState(() => designId = val),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       value: partyId,
-                      decoration: const InputDecoration(labelText: 'Party / Buyer'),
+                      decoration: const InputDecoration(
+                        labelText: 'Party / Buyer',
+                      ),
                       items: parties
-                          .map((p) => DropdownMenuItem(value: (p['id'] as num).toInt(), child: Text(p['name']?.toString() ?? '')))
+                          .map(
+                            (p) => DropdownMenuItem(
+                              value: (p['id'] as num).toInt(),
+                              child: Text(p['name']?.toString() ?? ''),
+                            ),
+                          )
                           .toList(),
                       onChanged: (val) => setDialogState(() => partyId = val),
                     ),
@@ -187,29 +245,45 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                         Expanded(
                           child: DropdownButtonFormField<int>(
                             value: vehicleId,
-                            decoration: const InputDecoration(labelText: 'Vehicle'),
+                            decoration: const InputDecoration(
+                              labelText: 'Vehicle',
+                            ),
                             items: vehicles
-                                .map((v) => DropdownMenuItem(
-                                      value: (v['id'] as num).toInt(),
-                                      child: Text(v['registration_number']?.toString() ?? ''),
-                                    ))
+                                .map(
+                                  (v) => DropdownMenuItem(
+                                    value: (v['id'] as num).toInt(),
+                                    child: Text(
+                                      v['registration_number']?.toString() ??
+                                          '',
+                                    ),
+                                  ),
+                                )
                                 .toList(),
-                            onChanged: (val) => setDialogState(() => vehicleId = val),
+                            onChanged: (val) =>
+                                setDialogState(() => vehicleId = val),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<int>(
                             value: driverId,
-                            decoration: const InputDecoration(labelText: 'Driver (Optional)'),
+                            decoration: const InputDecoration(
+                              labelText: 'Driver (Optional)',
+                            ),
                             items: [
-                              const DropdownMenuItem<int>(value: null, child: Text('None')),
-                              ...drivers.map((d) => DropdownMenuItem(
-                                    value: (d['id'] as num).toInt(),
-                                    child: Text(d['name']?.toString() ?? ''),
-                                  )),
+                              const DropdownMenuItem<int>(
+                                value: null,
+                                child: Text('None'),
+                              ),
+                              ...drivers.map(
+                                (d) => DropdownMenuItem(
+                                  value: (d['id'] as num).toInt(),
+                                  child: Text(d['name']?.toString() ?? ''),
+                                ),
+                              ),
                             ],
-                            onChanged: (val) => setDialogState(() => driverId = val),
+                            onChanged: (val) =>
+                                setDialogState(() => driverId = val),
                           ),
                         ),
                       ],
@@ -218,7 +292,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                     TextField(
                       controller: qtyCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Quantity Loaded (pcs)'),
+                      decoration: const InputDecoration(
+                        labelText: 'Quantity Loaded (pcs)',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -227,7 +303,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                           child: TextField(
                             controller: freightCtrl,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(labelText: 'Freight (₹)'),
+                            decoration: const InputDecoration(
+                              labelText: 'Freight (₹)',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -235,7 +313,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                           child: TextField(
                             controller: paidCtrl,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(labelText: 'Paid Amount (₹)'),
+                            decoration: const InputDecoration(
+                              labelText: 'Paid Amount (₹)',
+                            ),
                           ),
                         ),
                       ],
@@ -246,27 +326,55 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: paymentStatus,
-                            decoration: const InputDecoration(labelText: 'Payment Status'),
+                            decoration: const InputDecoration(
+                              labelText: 'Payment Status',
+                            ),
                             items: const [
-                              DropdownMenuItem(value: 'due', child: Text('Due')),
-                              DropdownMenuItem(value: 'paid', child: Text('Paid')),
-                              DropdownMenuItem(value: 'partial', child: Text('Partial')),
+                              DropdownMenuItem(
+                                value: 'due',
+                                child: Text('Due'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'paid',
+                                child: Text('Paid'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'partial',
+                                child: Text('Partial'),
+                              ),
                             ],
-                            onChanged: (val) => setDialogState(() => paymentStatus = val ?? 'due'),
+                            onChanged: (val) => setDialogState(
+                              () => paymentStatus = val ?? 'due',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: paymentMode,
-                            decoration: const InputDecoration(labelText: 'Payment Mode'),
+                            decoration: const InputDecoration(
+                              labelText: 'Payment Mode',
+                            ),
                             items: const [
-                              DropdownMenuItem(value: 'cash', child: Text('Cash')),
-                              DropdownMenuItem(value: 'upi', child: Text('UPI / Online')),
-                              DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer')),
-                              DropdownMenuItem(value: 'cheque', child: Text('Cheque')),
+                              DropdownMenuItem(
+                                value: 'cash',
+                                child: Text('Cash'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'upi',
+                                child: Text('UPI / Online'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'bank_transfer',
+                                child: Text('Bank Transfer'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'cheque',
+                                child: Text('Cheque'),
+                              ),
                             ],
-                            onChanged: (val) => setDialogState(() => paymentMode = val),
+                            onChanged: (val) =>
+                                setDialogState(() => paymentMode = val),
                           ),
                         ),
                       ],
@@ -274,7 +382,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: remarksCtrl,
-                      decoration: const InputDecoration(labelText: 'Remarks (Optional)'),
+                      decoration: const InputDecoration(
+                        labelText: 'Remarks (Optional)',
+                      ),
                     ),
                   ],
                 ),
@@ -309,6 +419,7 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                   final payload = {
                     'dispatch_date': _date(date),
                     'brick_type_id': brickTypeId,
+                    if (designId != null) 'design_id': designId,
                     'party_id': partyId,
                     'vehicle_id': vehicleId,
                     if (driverId != null) 'driver_id': driverId,
@@ -317,7 +428,8 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                     'payment_status': paymentStatus,
                     'paid_amount': paid,
                     if (paymentMode != null) 'payment_mode': paymentMode,
-                    if (remarksCtrl.text.trim().isNotEmpty) 'remarks': remarksCtrl.text.trim(),
+                    if (remarksCtrl.text.trim().isNotEmpty)
+                      'remarks': remarksCtrl.text.trim(),
                   };
                   try {
                     final api = ref.read(apiClientProvider);
@@ -350,7 +462,11 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
       ref.invalidate(dispatchDuesProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(record == null ? 'Dispatch created.' : 'Dispatch updated.')),
+          SnackBar(
+            content: Text(
+              record == null ? 'Dispatch created.' : 'Dispatch updated.',
+            ),
+          ),
         );
       }
     }
@@ -361,7 +477,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Dispatch?'),
-        content: Text('Are you sure you want to delete dispatch #${record.id} for ${record.party}?'),
+        content: Text(
+          'Are you sure you want to delete dispatch #${record.id} for ${record.party}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -385,15 +503,15 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
         ref.invalidate(dispatchDuesProvider);
         setState(() => _selectedId = null);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Dispatch deleted.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Dispatch deleted.')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(apiErrorMessage(e))),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
         }
       }
     }
@@ -422,11 +540,15 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Dispatch register', style: Theme.of(context).textTheme.displaySmall),
+                            Text(
+                              'Dispatch register',
+                              style: Theme.of(context).textTheme.displaySmall,
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               '${data.total} entries · page $_page of ${data.lastPage}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: DeskColors.muted),
                             ),
                           ],
                         ),
@@ -434,9 +556,11 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                         OutlinedButton.icon(
                           onPressed: _pickRange,
                           icon: const Icon(Icons.date_range, size: 16),
-                          label: Text(_range == null
-                              ? 'Filter date'
-                              : '${_date(_range!.start)} → ${_date(_range!.end)}'),
+                          label: Text(
+                            _range == null
+                                ? 'Filter date'
+                                : '${_date(_range!.start)} → ${_date(_range!.end)}',
+                          ),
                         ),
                         if (_range != null) ...[
                           const SizedBox(width: 8),
@@ -475,6 +599,7 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                             columns: const [
                               DataColumn(label: Text('Date')),
                               DataColumn(label: Text('Product')),
+                              DataColumn(label: Text('Design')),
                               DataColumn(label: Text('Party')),
                               DataColumn(label: Text('Vehicle')),
                               DataColumn(label: Text('Qty'), numeric: true),
@@ -485,10 +610,12 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                               final selected = item.id == _selectedId;
                               return DataRow(
                                 selected: selected,
-                                onSelectChanged: (_) => setState(() => _selectedId = item.id),
+                                onSelectChanged: (_) =>
+                                    setState(() => _selectedId = item.id),
                                 cells: [
                                   DataCell(Text(item.date)),
                                   DataCell(Text(item.product)),
+                                  DataCell(Text(item.design ?? '—')),
                                   DataCell(Text(item.party)),
                                   DataCell(Text(item.vehicle)),
                                   DataCell(Text('${item.quantity}')),
@@ -496,7 +623,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                                     Text(
                                       item.isPaid ? 'Paid' : 'Due',
                                       style: TextStyle(
-                                        color: item.isPaid ? DeskColors.settled : DeskColors.low,
+                                        color: item.isPaid
+                                            ? DeskColors.settled
+                                            : DeskColors.low,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -508,13 +637,21 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                                         if (_canEdit)
                                           IconButton(
                                             tooltip: 'Edit',
-                                            icon: const Icon(Icons.edit_outlined, size: 16),
-                                            onPressed: () => _openEntryDialog(item),
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              size: 16,
+                                            ),
+                                            onPressed: () =>
+                                                _openEntryDialog(item),
                                           ),
                                         if (_canDelete)
                                           IconButton(
                                             tooltip: 'Delete',
-                                            icon: const Icon(Icons.delete_outline, size: 16, color: DeskColors.danger),
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                              size: 16,
+                                              color: DeskColors.danger,
+                                            ),
                                             onPressed: () => _deleteEntry(item),
                                           ),
                                       ],
@@ -531,12 +668,16 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
                     Row(
                       children: [
                         OutlinedButton(
-                          onPressed: _page > 1 ? () => setState(() => _page--) : null,
+                          onPressed: _page > 1
+                              ? () => setState(() => _page--)
+                              : null,
                           child: const Text('Previous'),
                         ),
                         const SizedBox(width: 8),
                         OutlinedButton(
-                          onPressed: _page < data.lastPage ? () => setState(() => _page++) : null,
+                          onPressed: _page < data.lastPage
+                              ? () => setState(() => _page++)
+                              : null,
                           child: const Text('Next'),
                         ),
                       ],
@@ -548,7 +689,9 @@ class _DispatchScreenState extends ConsumerState<DispatchScreen> {
               SizedBox(
                 width: 340,
                 child: _DetailPane(
-                  record: data.items.where((e) => e.id == _selectedId).firstOrNull,
+                  record: data.items
+                      .where((e) => e.id == _selectedId)
+                      .firstOrNull,
                   canEdit: _canEdit,
                   canDelete: _canDelete,
                   onEdit: _openEntryDialog,
@@ -587,7 +730,9 @@ class _DetailPane extends StatelessWidget {
             ? Center(
                 child: Text(
                   'Select a row to view details',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
                 ),
               )
             : Column(
@@ -595,7 +740,10 @@ class _DetailPane extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text('Dispatch detail', style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        'Dispatch detail',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const Spacer(),
                       if (canEdit)
                         IconButton(
@@ -606,7 +754,11 @@ class _DetailPane extends StatelessWidget {
                       if (canDelete)
                         IconButton(
                           tooltip: 'Delete',
-                          icon: const Icon(Icons.delete_outline, size: 18, color: DeskColors.danger),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: DeskColors.danger,
+                          ),
                           onPressed: () => onDelete(record!),
                         ),
                     ],
@@ -614,6 +766,7 @@ class _DetailPane extends StatelessWidget {
                   const SizedBox(height: 12),
                   _row('Date', record!.date),
                   _row('Product', record!.product),
+                  _row('Design', record!.design ?? '—'),
                   _row('Party', record!.party),
                   _row('Vehicle', record!.vehicle),
                   _row('Driver', record!.driver ?? '—'),
@@ -633,7 +786,13 @@ class _DetailPane extends StatelessWidget {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 90, child: Text(label, style: const TextStyle(color: DeskColors.muted, fontSize: 12))),
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            style: const TextStyle(color: DeskColors.muted, fontSize: 12),
+          ),
+        ),
         Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
       ],
     ),
