@@ -17,11 +17,32 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
   DateTimeRange? _range;
   int _page = 1;
   int? _selectedId;
+  bool _refreshing = false;
 
   bool get _canManage =>
       ref.watch(authProvider).value?.hasPermission('loading.manage') ?? false;
 
   String _date(DateTime value) => value.toIso8601String().substring(0, 10);
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Loading...')])))),
+      );
+    }
+    ref.invalidate(loadingGroupsProvider);
+    try {
+      await ref.read(loadingGroupsProvider(query).future);
+    } catch (_) {}
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      setState(() => _refreshing = false);
+    }
+  }
 
   ({String? from, String? to, int page}) get query => (
     from: _range == null ? null : _date(_range!.start),
@@ -251,7 +272,7 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
     return DeskPage(
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: groups.when(
+        child: groups.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(child: Text(apiErrorMessage(error))),
           data: (data) => Row(
@@ -282,6 +303,18 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
                           ],
                         ),
                         const Spacer(),
+                        _refreshing
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : IconButton(
+                                tooltip: 'Refresh',
+                                onPressed: _refresh,
+                                icon: const Icon(Icons.refresh, size: 18),
+                              ),
+                        const SizedBox(width: 4),
                         OutlinedButton.icon(
                           onPressed: _pickRange,
                           icon: const Icon(Icons.date_range, size: 16),
@@ -316,45 +349,81 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
                     Expanded(
                       child: Card(
                         child: SingleChildScrollView(
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text('Date & Time')),
-                              DataColumn(label: Text('Group Name')),
-                              DataColumn(label: Text('Product')),
-                              DataColumn(
-                                label: Text('Number of Items'),
-                                numeric: true,
-                              ),
-                              DataColumn(label: Text('Remarks')),
-                              DataColumn(label: Text('Actions')),
-                            ],
-                            rows: data.items.map((item) {
-                              final selected = item.id == _selectedId;
-                              return DataRow(
-                                selected: selected,
-                                onSelectChanged: (_) => setState(
-                                  () => _selectedId = item.id,
+                          scrollDirection: Axis.horizontal,
+                          child: SingleChildScrollView(
+                            child: DataTable(
+                              columnSpacing: 16,
+                              horizontalMargin: 12,
+                              columns: const [
+                                DataColumn(label: Text('Date & Time')),
+                                DataColumn(label: Text('Group Name')),
+                                DataColumn(label: Text('Product')),
+                                DataColumn(
+                                  label: Text('Items'),
+                                  numeric: true,
                                 ),
-                                cells: [
-                                  DataCell(Text(item.formattedDateTime)),
-                                  DataCell(
-                                    Text(
-                                      item.groupName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                DataColumn(label: Text('Remarks')),
+                                DataColumn(label: Text('Actions')),
+                              ],
+                              rows: data.items.map((item) {
+                                final selected = item.id == _selectedId;
+                                return DataRow(
+                                  selected: selected,
+                                  onSelectChanged: (_) => setState(
+                                    () => _selectedId = item.id,
+                                  ),
+                                  cells: [
+                                    DataCell(
+                                      SizedBox(
+                                        width: 110,
+                                        child: Text(
+                                          item.formattedDateTime,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  DataCell(Text(item.product)),
-                                  DataCell(
-                                    Text(
-                                      '${item.quantity}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
+                                    DataCell(
+                                      SizedBox(
+                                        width: 120,
+                                        child: Text(
+                                          item.groupName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  DataCell(Text(item.remarks ?? '—')),
+                                    DataCell(
+                                      SizedBox(
+                                        width: 110,
+                                        child: Text(
+                                          item.product,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        '${item.quantity}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: 180,
+                                        child: Text(
+                                          item.remarks ?? '—',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                      ),
+                                    ),
                                   DataCell(
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -389,6 +458,7 @@ class _LoadingGroupsScreenState extends ConsumerState<LoadingGroupsScreen> {
                         ),
                       ),
                     ),
+                  ),
                     const SizedBox(height: 12),
                     Row(
                       children: [

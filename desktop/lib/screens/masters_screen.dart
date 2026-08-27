@@ -17,6 +17,7 @@ class MastersScreen extends ConsumerStatefulWidget {
 class _MastersScreenState extends ConsumerState<MastersScreen> {
   _MasterTab _tab = _MasterTab.products;
   String _search = '';
+  bool _refreshing = false;
 
   _MasterTab get _initialTab {
     if (ref.read(authProvider).value?.hasPermission('products.view') ?? false) {
@@ -45,6 +46,41 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
   bool get _canViewMasters =>
       ref.watch(authProvider).value?.hasPermission('masters.view') ?? false;
 
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Loading...')])))),
+      );
+    }
+    ref.invalidate(brickTypesProvider);
+    ref.invalidate(brickSizesProvider);
+    ref.invalidate(designsProvider);
+    ref.invalidate(machinesProvider);
+    ref.invalidate(partiesProvider);
+    ref.invalidate(vehiclesProvider);
+    ref.invalidate(driversProvider);
+    ref.invalidate(staffProvider);
+    try {
+      await Future.wait([
+        ref.read(brickTypesProvider.future),
+        ref.read(brickSizesProvider.future),
+        ref.read(designsProvider.future),
+        ref.read(machinesProvider.future),
+        ref.read(partiesProvider.future),
+        ref.read(vehiclesProvider.future),
+        ref.read(driversProvider.future),
+      ]);
+    } catch (_) {}
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      setState(() => _refreshing = false);
+    }
+  }
+
   Future<void> _openMasterRecordDialog(
     String title,
     List<({String field, String label, bool required})> fields,
@@ -65,7 +101,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
       ],
     );
 
-    if (saved == null) return;
+    if (saved != true) return;
     for (final f in fields) {
       if (f.required && controllers[f.field]!.text.trim().isEmpty) {
         _toast('${f.label} is required.', error: true);
@@ -155,7 +191,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
       ],
     );
 
-    if (saved == null) return;
+    if (saved != true) return;
     final name = nameCtrl.text.trim();
     if (name.isEmpty) {
       _toast('Size name is required.', error: true);
@@ -183,8 +219,6 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
   Future<void> _openBrickTypeDialog([BrickTypeModel? item]) async {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final codeCtrl = TextEditingController(text: item?.code ?? '');
-    final stockCtrl =
-        TextEditingController(text: item != null ? '${item.currentStock}' : '0');
     final reorderCtrl =
         TextEditingController(text: item != null ? '${item.reorderLevel}' : '500');
 
@@ -225,13 +259,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
             ),
           ],
         ),
-        Row(
-          children: [
-            Expanded(child: _DialogField(controller: stockCtrl, label: 'Current stock (pcs)', numeric: true)),
-            const SizedBox(width: 12),
-            Expanded(child: _DialogField(controller: reorderCtrl, label: 'Reorder level', numeric: true)),
-          ],
-        ),
+        _DialogField(controller: reorderCtrl, label: 'Reorder level', numeric: true),
         StatefulBuilder(
           builder: (ctx, setInner) => SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -243,7 +271,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
       ],
     );
 
-    if (saved == null) return;
+    if (saved != true) return;
     final name = nameCtrl.text.trim();
     final code = codeCtrl.text.trim();
     if (name.isEmpty || code.isEmpty) {
@@ -260,7 +288,6 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
     try {
       final api = ref.read(apiClientProvider);
       if (item == null) {
-        payload['current_stock'] = int.tryParse(stockCtrl.text.trim()) ?? 0;
         await api.createMaster('brick-types', payload);
       } else {
         await api.updateMaster('brick-types', item.id, payload);
@@ -310,7 +337,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
       ],
     );
 
-    if (saved == null) return;
+    if (saved != true) return;
     final name = nameCtrl.text.trim();
     if (name.isEmpty || size.isEmpty) {
       _toast('Design name and thickness are required.', error: true);
@@ -358,7 +385,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
       ],
     );
 
-    if (saved == null) return;
+    if (saved != true) return;
     final name = nameCtrl.text.trim();
     final code = codeCtrl.text.trim();
     if (name.isEmpty || code.isEmpty) {
@@ -422,7 +449,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
       ],
     );
 
-    if (saved == null) return;
+    if (saved != true) return;
     final name = nameCtrl.text.trim();
     final mobile = mobileCtrl.text.trim();
     if (name.isEmpty || mobile.isEmpty || roleId == null) {
@@ -536,11 +563,33 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Master data', style: Theme.of(context).textTheme.displaySmall),
-            const SizedBox(height: 4),
-            Text(
-              'Products, design patterns, and user accounts used across the factory',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Master data', style: Theme.of(context).textTheme.displaySmall),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Products, design patterns, and user accounts used across the factory',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                _refreshing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : IconButton(
+                        tooltip: 'Refresh',
+                        onPressed: _refresh,
+                        icon: const Icon(Icons.refresh),
+                      ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -694,7 +743,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildProducts() {
     final bricks = ref.watch(brickTypesProvider);
-    return bricks.when(
+    return bricks.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -716,12 +765,11 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
               child: SingleChildScrollView(
                 child: DataTable(
                   columnSpacing: 28,
-                  columns: const [
+                   columns: const [
                     DataColumn(label: Text('PRODUCT')),
                     DataColumn(label: Text('CODE')),
                     DataColumn(label: Text('SIZE / THICKNESS')),
                     DataColumn(label: Text('KIND')),
-                    DataColumn(label: Text('STOCK'), numeric: true),
                     DataColumn(label: Text('')),
                   ],
                   rows: filtered.map((b) => DataRow(cells: [
@@ -736,7 +784,6 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
                             side: BorderSide.none,
                           )),
                     DataCell(Text(b.isPaver ? 'Paver' : 'Fly ash')),
-                    DataCell(Text('${b.currentStock} pcs', style: const TextStyle(fontWeight: FontWeight.w700))),
                     DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                       if (_canManageProducts) ...[
                         IconButton(
@@ -768,7 +815,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildSizes() {
     final sizes = ref.watch(brickSizesProvider);
-    return sizes.when(
+    return sizes.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -838,7 +885,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildDesigns() {
     final designs = ref.watch(designsProvider);
-    return designs.when(
+    return designs.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -916,7 +963,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildMachines() {
     final machines = ref.watch(machinesProvider);
-    return machines.when(
+    return machines.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -986,7 +1033,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildParties() {
     final parties = ref.watch(partiesProvider);
-    return parties.when(
+    return parties.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -1049,7 +1096,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildVehicles() {
     final vehicles = ref.watch(vehiclesProvider);
-    return vehicles.when(
+    return vehicles.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -1110,7 +1157,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildDrivers() {
     final drivers = ref.watch(driversProvider);
-    return drivers.when(
+    return drivers.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) {
@@ -1173,7 +1220,7 @@ class _MastersScreenState extends ConsumerState<MastersScreen> {
 
   Widget _buildUsers() {
     final staff = ref.watch(staffProvider);
-    return staff.when(
+    return staff.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (users) {

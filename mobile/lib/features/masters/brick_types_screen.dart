@@ -293,7 +293,7 @@ class _BrickTypesScreenState extends ConsumerState<BrickTypesScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${item.code} · ${item.isPaver ? 'Paver' : 'Fly ash'} · stock ${item.currentStock}',
+                                    '${item.code} · ${item.isPaver ? 'Paver' : 'Fly ash'}',
                                     style: const TextStyle(
                                       color: AppColors.muted,
                                       fontSize: 12,

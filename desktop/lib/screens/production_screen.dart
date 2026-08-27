@@ -16,6 +16,7 @@ class _ProductionScreenState extends ConsumerState<ProductionScreen> {
   DateTimeRange? _range;
   int _page = 1;
   int? _selectedId;
+  bool _refreshing = false;
 
   bool get _canCreate =>
       ref.watch(authProvider).value?.hasPermission('production.create') ?? false;
@@ -27,6 +28,26 @@ class _ProductionScreenState extends ConsumerState<ProductionScreen> {
       ref.watch(authProvider).value?.hasPermission('production.export') ?? false;
 
   String _date(DateTime value) => value.toIso8601String().substring(0, 10);
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Loading...')])))),
+      );
+    }
+    ref.invalidate(productionRecordsProvider);
+    try {
+      await ref.read(productionRecordsProvider(query).future);
+    } catch (_) {}
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      setState(() => _refreshing = false);
+    }
+  }
 
   ({String? from, String? to, int page}) get query => (
         from: _range == null ? null : _date(_range!.start),
@@ -301,7 +322,7 @@ class _ProductionScreenState extends ConsumerState<ProductionScreen> {
     return DeskPage(
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: records.when(
+        child: records.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(child: Text(apiErrorMessage(error))),
           data: (data) => Row(
@@ -332,6 +353,18 @@ class _ProductionScreenState extends ConsumerState<ProductionScreen> {
                           ],
                         ),
                         const Spacer(),
+                        _refreshing
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : IconButton(
+                                tooltip: 'Refresh',
+                                onPressed: _refresh,
+                                icon: const Icon(Icons.refresh, size: 18),
+                              ),
+                        const SizedBox(width: 4),
                         OutlinedButton.icon(
                           onPressed: _pickRange,
                           icon: const Icon(Icons.date_range, size: 16),

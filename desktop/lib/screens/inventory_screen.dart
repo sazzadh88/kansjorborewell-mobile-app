@@ -19,6 +19,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
   // Stock Movement filter state
   DateTimeRange? _movementRange;
   int _movementPage = 1;
+  bool _refreshing = false;
 
   bool get _canManage =>
       ref.watch(authProvider).value?.hasPermission('inventory.manage') ?? false;
@@ -26,6 +27,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
       ref.watch(authProvider).value?.hasPermission('inventory.report') ?? false;
 
   String _date(DateTime value) => value.toIso8601String().substring(0, 10);
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Loading...')])))),
+      );
+    }
+    ref.invalidate(rawMaterialsProvider);
+    ref.invalidate(inventoryReportProvider);
+    try {
+      await Future.wait([
+        ref.read(rawMaterialsProvider.future),
+        if (_canReport) ref.read(inventoryReportProvider(_movementQuery).future),
+      ]);
+    } catch (_) {}
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      setState(() => _refreshing = false);
+    }
+  }
 
   ({String? from, String? to, int page}) get _movementQuery => (
         from: _movementRange == null ? null : _date(_movementRange!.start),
@@ -226,14 +251,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                 decoration: const InputDecoration(labelText: 'Unit (e.g. kg, ton, bag)'),
               ),
               const SizedBox(height: 12),
-              if (item == null) ...[
-                TextField(
-                  controller: stockCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Initial Stock'),
+              TextField(
+                controller: stockCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: item == null ? 'Initial Stock' : 'Current Stock',
                 ),
-                const SizedBox(height: 12),
-              ],
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: reorderCtrl,
                 keyboardType: TextInputType.number,
@@ -262,7 +287,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
               final payload = {
                 'name': name,
                 'unit': unit,
-                if (item == null) 'current_stock': stock,
+                'current_stock': stock,
                 'reorder_level': reorder,
               };
               try {
@@ -360,6 +385,18 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                   ],
                 ),
                 const Spacer(),
+                _refreshing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : IconButton(
+                        tooltip: 'Refresh',
+                        onPressed: _refresh,
+                        icon: const Icon(Icons.refresh, size: 18),
+                      ),
+                const SizedBox(width: 8),
                 if (_canManage)
                   FilledButton.icon(
                     onPressed: () => _openMaterialDialog(),
@@ -415,7 +452,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
 
   Widget _buildRawMaterialsTab() {
     final materials = ref.watch(rawMaterialsProvider);
-    return materials.when(
+    return materials.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(apiErrorMessage(error))),
       data: (items) => Card(
@@ -533,7 +570,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
         ),
         const SizedBox(height: 12),
         Expanded(
-          child: report.when(
+          child: report.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => Center(child: Text(apiErrorMessage(error))),
             data: (data) => Column(

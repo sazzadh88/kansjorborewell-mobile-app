@@ -15,6 +15,7 @@ class RolesScreen extends ConsumerStatefulWidget {
 class _RolesScreenState extends ConsumerState<RolesScreen> {
   final _nameController = TextEditingController();
   bool _saving = false;
+  bool _refreshing = false;
   int? _editingRoleId;
   Set<String> _draftPermissions = {};
 
@@ -38,6 +39,30 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
       _editingRoleId = null;
       _draftPermissions = {};
     });
+  }
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Loading...')])))),
+      );
+    }
+    ref.invalidate(manageRolesProvider);
+    ref.invalidate(permissionsProvider);
+    try {
+      await Future.wait([
+        ref.read(manageRolesProvider.future),
+        ref.read(permissionsProvider.future),
+      ]);
+    } catch (_) {}
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      setState(() => _refreshing = false);
+    }
   }
 
   Future<void> _save() async {
@@ -123,11 +148,33 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Roles & permissions', style: Theme.of(context).textTheme.displaySmall),
-            const SizedBox(height: 4),
-            Text(
-              'Admin always has full access; other roles and permissions can be configured here',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Roles & permissions', style: Theme.of(context).textTheme.displaySmall),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Admin always has full access; other roles and permissions can be configured here',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                _refreshing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : IconButton(
+                        tooltip: 'Refresh',
+                        onPressed: _refresh,
+                        icon: const Icon(Icons.refresh),
+                      ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -137,7 +184,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                   Expanded(
                     flex: 3,
                     child: Card(
-                      child: roles.when(
+                      child: roles.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
                         loading: () => const Center(child: CircularProgressIndicator()),
                         error: (error, _) => Center(child: Text(apiErrorMessage(error))),
                         data: (items) => SingleChildScrollView(
@@ -192,7 +239,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                     child: Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
-                        child: permissions.when(
+                        child: permissions.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
                           loading: () => const Center(child: CircularProgressIndicator()),
                           error: (error, _) => Center(child: Text(apiErrorMessage(error))),
                           data: (perms) {

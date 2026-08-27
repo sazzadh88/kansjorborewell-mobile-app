@@ -6,11 +6,38 @@ import '../widgets/desk_page.dart';
 import '../widgets/metric_tile.dart';
 import '../theme/desk_theme.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _refreshing = false;
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Loading...')])))),
+      );
+    }
+    ref.invalidate(dashboardProvider);
+    try {
+      await ref.read(dashboardProvider.future);
+    } catch (_) {}
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      setState(() => _refreshing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final summary = ref.watch(dashboardProvider);
     final user = ref.watch(authProvider).value;
     final showProduction = user?.hasPermission('production.view') ?? false;
@@ -19,23 +46,45 @@ class DashboardScreen extends ConsumerWidget {
     return DeskPage(
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: summary.when(
+        child: summary.when(skipLoadingOnReload: true, skipLoadingOnRefresh: true, 
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Text(apiErrorMessage(error)),
           ),
           data: (data) => ListView(
             children: [
-              Text(
-                'Operations overview',
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Factory snapshot for ${data.date}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Operations overview',
+                          style: Theme.of(context).textTheme.displaySmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Factory snapshot for ${data.date}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: DeskColors.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _refreshing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : IconButton(
+                          tooltip: 'Refresh',
+                          onPressed: _refresh,
+                          icon: const Icon(Icons.refresh),
+                        ),
+                ],
               ),
               if (showProduction || showDispatch || showProducts) ...[
                 const SizedBox(height: 16),
