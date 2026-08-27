@@ -67,12 +67,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       'name': _nameController.text.trim(),
       'unit': _resolvedUnit,
       'reorder_level': double.parse(_reorderLevelController.text.trim()),
-    };
-    if (_editingId == null) {
-      payload['current_stock'] = double.parse(
+      'current_stock': double.parse(
         _openingStockController.text.trim(),
-      );
-    }
+      ),
+    };
 
     try {
       final api = ref.read(apiClientProvider);
@@ -119,7 +117,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   void _startEdit(RawMaterialModel item) {
     _nameController.text = item.name;
     _reorderLevelController.text = _format(item.reorderLevel);
-    _openingStockController.clear();
+    _openingStockController.text = _format(item.currentStock);
     if (_units.contains(item.unit)) {
       _unit = item.unit;
       _customUnitController.clear();
@@ -493,7 +491,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               FormSection(
                 title: editing ? 'Edit inventory item' : 'Add inventory item',
                 subtitle: editing
-                    ? 'Current stock stays unchanged while you edit its details.'
+                    ? 'Update stock directly or use Stock In / Stock Out below.'
                     : 'Choose a unit or enter a custom unit under Other.',
                 child: Form(
                   key: _formKey,
@@ -538,20 +536,18 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         ),
                       ],
                       const SizedBox(height: 12),
-                      if (!editing) ...[
-                        TextFormField(
-                          controller: _openingStockController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          validator: _positiveNumber,
-                          decoration: const InputDecoration(
-                            labelText: 'Opening stock',
-                            prefixIcon: Icon(Icons.inventory_2_outlined),
-                          ),
+                      TextFormField(
+                        controller: _openingStockController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
-                        const SizedBox(height: 12),
-                      ],
+                        validator: _positiveNumber,
+                        decoration: InputDecoration(
+                          labelText: editing ? 'Current stock' : 'Opening stock',
+                          prefixIcon: const Icon(Icons.inventory_2_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _reorderLevelController,
                         keyboardType: const TextInputType.numberWithOptions(
