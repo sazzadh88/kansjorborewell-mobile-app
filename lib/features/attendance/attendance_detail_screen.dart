@@ -79,8 +79,8 @@ class _AttendanceDetailScreenState
       ref.invalidate(attendanceMonthProvider((userId: widget.userId, month: _month)));
 
   Future<void> _openMarkDialog(AttendanceDay day) async {
-    String status =
-        (day.status == 'A' || day.status == 'P') ? day.status! : 'P';
+    final bool extended = day.status != 'A' && day.status != 'P';
+    String status = extended ? 'P' : (day.status ?? 'P');
     final advanceCtrl = TextEditingController(
       text: day.advanceAmount > 0 ? '${day.advanceAmount}' : '',
     );
@@ -98,26 +98,45 @@ class _AttendanceDetailScreenState
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _StatusButton(
-                        label: 'P · Present',
-                        selected: status == 'P',
-                        onTap: () => setDialogState(() => status = 'P'),
+                if (extended)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningTint,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Marked ${day.status} earlier — saving here keeps that status; only advance and note change.',
+                      style: const TextStyle(
+                        color: AppColors.warning,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _StatusButton(
-                        label: 'A · Absent',
-                        selected: status == 'A',
-                        absent: true,
-                        onTap: () => setDialogState(() => status = 'A'),
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatusButton(
+                          label: 'P · Present',
+                          selected: status == 'P',
+                          onTap: () =>
+                              setDialogState(() => status = 'P'),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _StatusButton(
+                          label: 'A · Absent',
+                          selected: status == 'A',
+                          absent: true,
+                          onTap: () =>
+                              setDialogState(() => status = 'A'),
+                        ),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -176,7 +195,12 @@ class _AttendanceDetailScreenState
                       final payload = <String, dynamic>{
                         'user_id': widget.userId,
                         'date': day.date,
-                        'status': status,
+                        'status': extended ? day.status : status,
+                        if (extended) ...{
+                          'ot_hours': day.otHours,
+                          'ot_minutes': day.otMinutes,
+                          'ot_rate': day.otRate,
+                        },
                         'advance_amount':
                             double.tryParse(advanceCtrl.text.trim()) ?? 0,
                         'advance_mode': mode,
