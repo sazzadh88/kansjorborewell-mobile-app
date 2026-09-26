@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:core/core.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_widgets.dart';
@@ -39,7 +41,7 @@ class DispatchDuesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 5),
             Text(
-              'Total freight, paid, and final due across all dispatches.',
+              'Total freight, paid, and final due across all dispatches. Receipts clear the oldest dues first.',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: AppColors.muted),
@@ -99,6 +101,11 @@ class DispatchDuesScreen extends ConsumerWidget {
                                 ],
                               ),
                               const SizedBox(height: 12),
+                              if (row.openingDue > 0)
+                                _row(
+                                  'Opening due',
+                                  '₹ ${_money(row.openingDue)}',
+                                ),
                               _row('Freight', '₹ ${_money(row.freightAmount)}'),
                               _row('Paid', '₹ ${_money(row.paidAmount)}'),
                               const Divider(height: 20),
@@ -108,6 +115,8 @@ class DispatchDuesScreen extends ConsumerWidget {
                                 bold: true,
                                 due: row.dueAmount > 0,
                               ),
+                              const SizedBox(height: 12),
+                              _ReceiveButton(row: row),
                             ],
                           ),
                         ),
@@ -143,6 +152,176 @@ class DispatchDuesScreen extends ConsumerWidget {
             fontWeight: bold ? FontWeight.w900 : FontWeight.w700,
             fontSize: bold ? 16 : 14,
           ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _ReceiveButton extends ConsumerWidget {
+  const _ReceiveButton({required this.row});
+
+  final DispatchDueRow row;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final canReceive =
+        ref.watch(authProvider).value?.hasPermission('dispatch.edit') ??
+        false;
+    if (!canReceive) return const SizedBox.shrink();
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => _ReceiveSheet(row: row),
+        ),
+        icon: const Icon(Icons.payments_outlined, size: 18),
+        label: const Text('Receive payment'),
+      ),
+    );
+  }
+}
+
+class _ReceiveSheet extends ConsumerStatefulWidget {
+  const _ReceiveSheet({required this.row});
+
+  final DispatchDueRow row;
+
+  @override
+  ConsumerState<_ReceiveSheet> createState() => _ReceiveSheetState();
+}
+
+class _ReceiveSheetState extends ConsumerState<_ReceiveSheet> {
+  final _amountController = TextEditingController();
+  final _dateController = TextEditingController(
+    text: DateTime.now().toIso8601String().substring(0, 10),
+  );
+  String? _mode = 'cash';
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final amount = double.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter an amount greater than zero.')),
+      );
+      return;
+    }
+    if (amount - widget.row.dueAmount > 0.005) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Only ₹${widget.row.dueAmount.toStringAsFixed(2)} is outstanding for ${widget.row.party}.',
+          ),
+        ),
+      );
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(apiClientProvider)
+          .recordDuePayment(
+            partyId: widget.row.partyId,
+            amount: amount,
+            date: _dateController.text.trim(),
+            mode: _mode,
+          );
+      ref.invalidate(dispatchDuesProvider);
+      ref.invalidate(dashboardProvider);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Payment recorded.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(apiErrorMessage(error))));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(
+      left: 20,
+      right: 20,
+      top: 20,
+      bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Receive · ${widget.row.party}',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Due ₹${widget.row.dueAmount.toStringAsFixed(2)} · clears oldest dues first',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _amountController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Amount (₹)',
+            prefixIcon: Icon(Icons.currency_rupee_outlined),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _dateController,
+          readOnly: true,
+          decoration: const InputDecoration(
+            labelText: 'Date',
+            prefixIcon: Icon(Icons.calendar_today_outlined),
+          ),
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: DateTime.tryParse(_dateController.text) ?? DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null) {
+              _dateController.text = picked.toIso8601String().substring(0, 10);
+            }
+          },
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String?>(
+          initialValue: _mode,
+          decoration: const InputDecoration(labelText: 'Mode'),
+          items: const [
+            DropdownMenuItem(value: 'cash', child: Text('Cash')),
+            DropdownMenuItem(value: 'online', child: Text('Online')),
+          ],
+          onChanged: (value) => setState(() => _mode = value),
+        ),
+        const SizedBox(height: 20),
+        FilledButton.icon(
+          onPressed: _saving ? null : _save,
+          icon: const Icon(Icons.check_rounded),
+          label: Text(_saving ? 'Saving…' : 'Record payment'),
         ),
       ],
     ),

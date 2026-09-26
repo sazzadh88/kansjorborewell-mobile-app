@@ -43,6 +43,8 @@ class ProfileScreen extends ConsumerWidget {
     final canViewInventory = user?.hasPermission('inventory.view') ?? false;
     final canViewStriking = user?.hasPermission('striking.view') ?? false;
     final canViewLoading = user?.hasPermission('loading.view') ?? false;
+    final canViewAttendance =
+        user?.hasPermission('attendance.view') ?? false;
     final canViewProducts = user?.hasPermission('products.view') ?? false;
     final canViewMasters = user?.hasPermission('masters.view') ?? false;
     final canViewDispatch = user?.hasPermission('dispatch.view') ?? false;
@@ -170,6 +172,17 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
               ],
               const SizedBox(height: 10),
+            ],
+            if (canViewAttendance) ...[
+              const SectionHeading(title: 'Attendance'),
+              const SizedBox(height: 10),
+              _ActionTile(
+                icon: Icons.calendar_month_outlined,
+                title: 'Staff attendance',
+                subtitle: 'Monthly sheets, overtime, and advances',
+                onTap: () => context.push('/attendance'),
+              ),
+              const SizedBox(height: 18),
             ],
             if (canManageStaff || canManageRoles) ...[
               const SectionHeading(title: 'Administration'),

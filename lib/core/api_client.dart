@@ -34,12 +34,18 @@ Future<String> _saveCsvToDownloads(String fileName, String content) async {
   throw const ApiException('CSV downloads are currently supported on Android.');
 }
 
-ApiClient buildMobileApiClient() => ApiClient(
-  baseUrl: const String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'https://app.kansjorborewell.in/api',
-    // defaultValue: 'http://192.168.0.40:8000/api',
-  ),
-  storage: const SecureTokenStore(),
-  saveCsv: _saveCsvToDownloads,
-);
+ApiClient buildMobileApiClient() {
+  // `--dart-define=API_BASE_URL=...` wins when provided; otherwise debug
+  // builds talk to the local backend and release builds use production.
+  const override = String.fromEnvironment('API_BASE_URL');
+  final baseUrl = override.isNotEmpty
+      ? override
+      : kDebugMode
+          ? 'http://127.0.0.1:8000/api'
+          : 'https://app.kansjorborewell.in/api';
+  return ApiClient(
+    baseUrl: baseUrl,
+    storage: const SecureTokenStore(),
+    saveCsv: _saveCsvToDownloads,
+  );
+}

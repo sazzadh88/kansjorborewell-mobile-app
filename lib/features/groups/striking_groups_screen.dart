@@ -97,13 +97,19 @@ class _StrikingGroupsScreenState extends ConsumerState<StrikingGroupsScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   initialValue: brickTypeId,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Brick Type / Product',
                   ),
                   items: bricks
                       .map(
-                        (b) =>
-                            DropdownMenuItem(value: b.id, child: Text(b.name)),
+                        (b) => DropdownMenuItem(
+                          value: b.id,
+                          child: Text(
+                            b.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       )
                       .toList(),
                   onChanged: (val) => setDialogState(() => brickTypeId = val),

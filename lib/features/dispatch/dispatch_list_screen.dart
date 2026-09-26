@@ -107,7 +107,7 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete dispatch?'),
         content: Text(
-          '${item.product} · ${item.quantity} pcs will be removed and stock will be restored.',
+          '${item.itemsSummary} pcs will be removed and stock will be restored.',
         ),
         actions: [
           TextButton(
@@ -163,7 +163,7 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.product,
+                  item.itemsSummary,
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 4),
@@ -178,9 +178,9 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${item.isPaid ? 'Paid' : 'Due'} · ₹${item.paidAmount} / ₹${item.freightAmount ?? 0}',
+                  '${item.collectionStatus == 'paid' ? 'Paid' : item.collectionStatus == 'partial' ? 'Partial' : 'Due'} · ₹${item.allocPaid} / ₹${item.freightAmount ?? 0}',
                   style: TextStyle(
-                    color: item.isPaid ? AppColors.success : AppColors.warning,
+                    color: item.collectionStatus == 'paid' ? AppColors.success : item.collectionStatus == 'partial' ? AppColors.warning : AppColors.warning,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
@@ -192,7 +192,7 @@ class _DispatchListState extends ConsumerState<DispatchScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${item.quantity}',
+                '${item.totalQuantity}',
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),

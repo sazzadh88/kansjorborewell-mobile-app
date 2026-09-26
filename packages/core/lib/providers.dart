@@ -196,6 +196,21 @@ final loadingGroupsProvider = FutureProvider.autoDispose
 final staffProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>(
   (ref) => ref.read(apiClientProvider).staff(),
 );
+
+final attendanceTeamProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>(
+  (ref) => ref.read(apiClientProvider).attendanceTeam(),
+);
+
+final attendanceMonthProvider = FutureProvider.autoDispose
+    .family<MonthlyAttendance, ({int userId, String month})>((
+      ref,
+      query,
+    ) async {
+      return ref
+          .read(apiClientProvider)
+          .monthlyAttendance(query.userId, query.month);
+    });
 final rolesProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>(
   (ref) => ref.read(apiClientProvider).staffRoles(),
 );

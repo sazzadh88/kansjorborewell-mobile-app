@@ -213,6 +213,29 @@ class ApiClient {
 
   Future<List<Map<String, dynamic>>> staff() async => listResource('/staff');
 
+  Future<List<Map<String, dynamic>>> attendanceTeam() async {
+    final response = await dio.get('/attendance/team');
+    final body = response.data;
+    final list = body is List ? body : (body as Map<String, dynamic>)['data'];
+    return ((list as List?) ?? const [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+  }
+
+  Future<MonthlyAttendance> monthlyAttendance(int userId, String month) async {
+    final response = await dio.get(
+      '/attendance/monthly/$userId',
+      queryParameters: {'month': month},
+    );
+    return MonthlyAttendance.fromJson(
+      (response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<void> upsertAttendance(Map<String, dynamic> payload) async {
+    await dio.post('/attendance', data: payload);
+  }
+
   Future<List<Map<String, dynamic>>> staffRoles() async =>
       listResource('/staff/roles');
 
@@ -246,6 +269,22 @@ class ApiClient {
   Future<DispatchDues> dispatchDues() async {
     final response = await dio.get('/reports/dispatch-dues');
     return DispatchDues.fromJson(Map<String, dynamic>.from(response.data as Map));
+  }
+
+  Future<void> recordDuePayment({
+    required int partyId,
+    required double amount,
+    required String date,
+    String? mode,
+    String? remarks,
+  }) async {
+    await dio.post('/reports/dispatch-dues/payment', data: {
+      'party_id': partyId,
+      'amount': amount,
+      'payment_date': date,
+      if (mode != null) 'payment_mode': mode,
+      if (remarks != null && remarks.isNotEmpty) 'remarks': remarks,
+    });
   }
 
   Future<List<RoleModel>> manageRoles() async {

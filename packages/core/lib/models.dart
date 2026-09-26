@@ -323,6 +323,42 @@ class ProductionRecord {
       );
 }
 
+class DispatchItemModel {
+  const DispatchItemModel({
+    required this.brickTypeId,
+    required this.product,
+    required this.quantity,
+    this.designId,
+    this.design,
+    this.currentStock,
+  });
+
+  final int brickTypeId;
+  final String product;
+  final int quantity;
+  final int? designId;
+  final String? design;
+  final int? currentStock;
+
+  factory DispatchItemModel.fromJson(Map<String, dynamic> json) {
+    final brick = json['brick_type'] as Map?;
+    return DispatchItemModel(
+      brickTypeId: _parseInt(json['brick_type_id'] ?? brick?['id']),
+      product: brick?['name']?.toString() ?? 'Product',
+      quantity: _parseInt(json['quantity']),
+      designId: json['design_id'] != null
+          ? _parseInt(json['design_id'])
+          : ((json['design'] as Map?)?['id'] != null
+                ? _parseInt((json['design'] as Map?)?['id'])
+                : null),
+      design: (json['design'] as Map?)?['name']?.toString(),
+      currentStock: brick?['current_stock'] != null
+          ? _parseInt(brick?['current_stock'])
+          : null,
+    );
+  }
+}
+
 class DispatchRecord {
   const DispatchRecord({
     required this.id,
@@ -335,10 +371,12 @@ class DispatchRecord {
     required this.party,
     required this.vehicle,
     required this.quantity,
+    this.items = const [],
     this.designId,
     this.design,
     this.driver,
     this.freightAmount,
+    this.allocPaid = 0,
     this.paymentStatus = 'due',
     this.paidAmount = 0,
     this.paymentMode,
@@ -360,16 +398,38 @@ class DispatchRecord {
   final String? design;
   final String? driver;
   final double? freightAmount;
+  final double allocPaid;
   final String paymentStatus;
   final double paidAmount;
   final String? paymentMode;
   final double gstRate;
   final String? remarks;
 
+  final List<DispatchItemModel> items;
+
+  int get totalQuantity =>
+      items.isEmpty ? quantity : items.fold(0, (s, i) => s + i.quantity);
+
+  String get itemsSummary => items.isEmpty
+      ? '$product × $quantity'
+      : items.map((i) => '${i.product} × ${i.quantity}').join(', ');
+
   double get dueAmount => (freightAmount ?? 0) - paidAmount;
   bool get isPaid => paymentStatus == 'paid';
 
-  factory DispatchRecord.fromJson(Map<String, dynamic> json) => DispatchRecord(
+  /// Allocation-aware status: receipts (incl. collected on delivery) count.
+  String get collectionStatus {
+    final freight = freightAmount ?? 0;
+    if (allocPaid >= freight) return 'paid';
+    if (allocPaid > 0) return 'partial';
+    return 'due';
+  }
+
+  bool get isFullyPaid => collectionStatus == 'paid';
+
+  factory DispatchRecord.fromJson(Map<String, dynamic> json) {
+    final rawItems = (json['items'] as List?) ?? const [];
+    return DispatchRecord(
     id: _parseInt(json['id']),
     date: json['dispatch_date']?.toString() ?? '',
     brickTypeId: _parseInt((json['brick_type'] as Map?)?['id']),
@@ -389,17 +449,22 @@ class DispatchRecord {
     designId: json['design'] != null
         ? _parseInt((json['design'] as Map?)?['id'])
         : null,
+    items: rawItems
+        .map((e) => DispatchItemModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(),
     design: (json['design'] as Map?)?['name']?.toString(),
     driver: (json['driver'] as Map?)?['name']?.toString(),
     freightAmount: json['freight_amount'] != null
         ? _parseDouble(json['freight_amount'])
         : null,
+    allocPaid: _parseDouble(json['alloc_paid'] ?? json['paid_amount']),
     paymentStatus: json['payment_status']?.toString() ?? 'due',
     paidAmount: _parseDouble(json['paid_amount']),
     paymentMode: json['payment_mode']?.toString(),
     gstRate: _parseDouble(json['gst_rate'], 18),
     remarks: json['remarks']?.toString(),
   );
+  }
 }
 
 class PaginatedProduction {
@@ -526,12 +591,14 @@ class DispatchDues {
     required this.freightAmount,
     required this.paidAmount,
     required this.dueAmount,
+    this.openingDue = 0,
   });
 
   final List<DispatchDueRow> parties;
   final double freightAmount;
   final double paidAmount;
   final double dueAmount;
+  final double openingDue;
 
   factory DispatchDues.fromJson(Map<String, dynamic> json) {
     final totals = Map<String, dynamic>.from(json['totals'] as Map? ?? {});
@@ -542,6 +609,7 @@ class DispatchDues {
       freightAmount: _parseDouble(totals['freight_amount']),
       paidAmount: _parseDouble(totals['paid_amount']),
       dueAmount: _parseDouble(totals['due_amount']),
+      openingDue: _parseDouble(totals['opening_due']),
     );
   }
 }
@@ -554,6 +622,7 @@ class DispatchDueRow {
     required this.paidAmount,
     required this.dueAmount,
     required this.dispatches,
+    this.openingDue = 0,
   });
 
   final int partyId;
@@ -562,6 +631,7 @@ class DispatchDueRow {
   final double paidAmount;
   final double dueAmount;
   final int dispatches;
+  final double openingDue;
 
   factory DispatchDueRow.fromJson(Map<String, dynamic> json) => DispatchDueRow(
     partyId: _parseInt(json['party_id']),
@@ -570,6 +640,7 @@ class DispatchDueRow {
     paidAmount: _parseDouble(json['paid_amount']),
     dueAmount: _parseDouble(json['due_amount']),
     dispatches: _parseInt(json['dispatches']),
+    openingDue: _parseDouble(json['opening_due']),
   );
 }
 
@@ -719,4 +790,144 @@ class PaginatedLoadingGroups {
   final int currentPage;
   final int lastPage;
   final int total;
+}
+
+double _attendanceNum(dynamic value) {
+  if (value is num) return value.toDouble();
+  return double.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+int _attendanceInt(dynamic value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+class AttendanceOverview {
+  const AttendanceOverview({
+    required this.totalPresent,
+    required this.totalAbsent,
+    required this.otHours,
+    required this.otMinutes,
+    required this.otTotalHours,
+    required this.otDisplay,
+    required this.totalOtAmount,
+    required this.totalAdvance,
+    required this.halfDayTotal,
+    required this.ppTotal,
+    required this.pHalfTotal,
+    required this.balanceAmount,
+  });
+
+  factory AttendanceOverview.fromJson(Map<String, dynamic> json) =>
+      AttendanceOverview(
+        totalPresent: _attendanceNum(json['total_present']),
+        totalAbsent: _attendanceNum(json['total_absent']),
+        otHours: _attendanceInt(json['ot_hours']),
+        otMinutes: _attendanceInt(json['ot_minutes']),
+        otTotalHours: _attendanceNum(json['ot_total_hours']),
+        otDisplay: json['ot_display']?.toString() ?? '',
+        totalOtAmount: _attendanceNum(json['total_ot_amount']),
+        totalAdvance: _attendanceNum(json['total_advance']),
+        halfDayTotal: _attendanceInt(json['half_day_total']),
+        ppTotal: _attendanceInt(json['pp_total']),
+        pHalfTotal: _attendanceInt(json['p_half_total']),
+        balanceAmount: _attendanceNum(json['balance_amount']),
+      );
+
+  final double totalPresent;
+  final double totalAbsent;
+  final int otHours;
+  final int otMinutes;
+  final double otTotalHours;
+  final String otDisplay;
+  final double totalOtAmount;
+  final double totalAdvance;
+  final int halfDayTotal;
+  final int ppTotal;
+  final int pHalfTotal;
+  final double balanceAmount;
+}
+
+class AttendanceDay {
+  const AttendanceDay({
+    required this.date,
+    required this.day,
+    required this.weekday,
+    this.status,
+    required this.otHours,
+    required this.otMinutes,
+    required this.otRate,
+    required this.otAmount,
+    required this.advanceAmount,
+    this.advanceMode,
+    this.note,
+  });
+
+  factory AttendanceDay.fromJson(Map<String, dynamic> json) => AttendanceDay(
+        date: json['date']?.toString() ?? '',
+        day: json['day']?.toString() ?? '',
+        weekday: json['weekday']?.toString() ?? '',
+        status: json['status']?.toString(),
+        otHours: _attendanceInt(json['ot_hours']),
+        otMinutes: _attendanceInt(json['ot_minutes']),
+        otRate: _attendanceNum(json['ot_rate']),
+        otAmount: _attendanceNum(json['ot_amount']),
+        advanceAmount: _attendanceNum(json['advance_amount']),
+        advanceMode: json['advance_mode']?.toString(),
+        note: json['note']?.toString(),
+      );
+
+  final String date;
+  final String day;
+  final String weekday;
+  final String? status;
+  final int otHours;
+  final int otMinutes;
+  final double otRate;
+  final double otAmount;
+  final double advanceAmount;
+  final String? advanceMode;
+  final String? note;
+
+  bool get hasEntry =>
+      status != null ||
+      advanceAmount > 0 ||
+      (note != null && note!.isNotEmpty);
+}
+
+class MonthlyAttendance {
+  const MonthlyAttendance({
+    required this.userId,
+    required this.userName,
+    required this.userMobile,
+    required this.month,
+    required this.monthLabel,
+    required this.overview,
+    required this.days,
+  });
+
+  factory MonthlyAttendance.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] as Map<String, dynamic>? ?? const {};
+    return MonthlyAttendance(
+      userId: _attendanceInt(user['id']),
+      userName: user['name']?.toString() ?? '',
+      userMobile: user['mobile']?.toString() ?? '',
+      month: json['month']?.toString() ?? '',
+      monthLabel: json['month_label']?.toString() ?? '',
+      overview: AttendanceOverview.fromJson(
+        json['overview'] as Map<String, dynamic>? ?? const {},
+      ),
+      days: ((json['days'] as List?) ?? const [])
+          .map((d) => AttendanceDay.fromJson(d as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final int userId;
+  final String userName;
+  final String userMobile;
+  final String month;
+  final String monthLabel;
+  final AttendanceOverview overview;
+  final List<AttendanceDay> days;
 }

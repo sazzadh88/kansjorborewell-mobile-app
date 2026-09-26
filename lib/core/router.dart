@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/admin/staff_screen.dart';
+import '../features/attendance/attendance_detail_screen.dart';
+import '../features/attendance/attendance_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/splash_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
@@ -36,6 +38,8 @@ final Map<String, String> routePermissions = {
   '/inventory/report': 'inventory.report',
   '/striking-groups': 'striking.view',
   '/loading-groups': 'loading.view',
+  '/attendance': 'attendance.view',
+  '/attendance/detail': 'attendance.view',
   '/admin/staff': 'staff.manage',
   '/admin/roles': 'roles.manage',
   '/reports/gst': 'reports.view',
@@ -148,6 +152,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/loading-groups',
         builder: (context, state) => const LoadingGroupsScreen(),
+      ),
+      GoRoute(
+        path: '/attendance',
+        builder: (context, state) => const AttendanceScreen(),
+      ),
+      GoRoute(
+        path: '/attendance/detail',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is ({int userId, String name, String mobile})) {
+            return AttendanceDetailScreen(
+              userId: extra.userId,
+              name: extra.name,
+              mobile: extra.mobile,
+            );
+          }
+          return const AttendanceScreen();
+        },
       ),
       GoRoute(
         path: '/masters/brick-types',
