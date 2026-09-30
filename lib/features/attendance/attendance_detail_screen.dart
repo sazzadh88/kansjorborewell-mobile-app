@@ -79,7 +79,9 @@ class _AttendanceDetailScreenState
       ref.invalidate(attendanceMonthProvider((userId: widget.userId, month: _month)));
 
   Future<void> _openMarkDialog(AttendanceDay day) async {
-    final bool extended = day.status != 'A' && day.status != 'P';
+    final bool extended = day.status != null &&
+        day.status != 'A' &&
+        day.status != 'P';
     String status = extended ? 'P' : (day.status ?? 'P');
     final advanceCtrl = TextEditingController(
       text: day.advanceAmount > 0 ? '${day.advanceAmount}' : '',
